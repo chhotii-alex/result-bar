@@ -121,32 +121,39 @@
 </script>
 
 <h3>
-    {numbers.dx}
+  {numbers.dx}
 </h3>
 
-<div class="sizer" bind:clientWidth bind:clientHeight height="60vh" width="90vw">
+<div
+  class="sizer"
+  bind:clientWidth
+  bind:clientHeight
+  height="60vh"
+  width="90vw"
+>
   {#if clientWidth && numbers}
-    <svg width="100%" height="60vh" >
+    <svg width="100%" height="60vh">
       <g transform={`translate(${margin.left}, ${bounds.bottom})`}>
         <g transform="scale(1, -1)">
           {#each populationsAtLevel(aData, levels) as pop}
             <rect
               x={width * pop.minX + 0.05 * (pop.maxX - pop.minX)}
               width={width * 0.9 * (pop.maxX - pop.minX)}
-              y={20*(levels+1)}
-              height={(height-20*(levels+1)) * pop.data / maxValue}
+              y={20 * (levels + 1)}
+              height={((height - 20 * (levels + 1)) * pop.data) / maxValue}
               fill={pop.color}
             />
           {/each}
         </g>
-      {#each findPopulations(aData) as pop}
-        <text x={width*(pop.maxX + pop.minX)/2}
-           y={20*(-pop.level)}
-           text-anchor="middle"
-        >
-          {pop.label}
-        </text>
-      {/each}
+        {#each findPopulations(aData) as pop}
+          <text
+            x={(width * (pop.maxX + pop.minX)) / 2}
+            y={20 * -pop.level}
+            text-anchor="middle"
+          >
+            {pop.label}
+          </text>
+        {/each}
       </g>
     </svg>
   {/if}

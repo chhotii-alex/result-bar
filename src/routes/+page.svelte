@@ -227,7 +227,7 @@
     <select name="dx" id="dx">
       {#each dxList as dx}
         {#if dx == "Helicobacter pylori"}
-          <option selected >{dx} </option>
+          <option selected>{dx} </option>
         {:else}
           <option>{dx} </option>
         {/if}
