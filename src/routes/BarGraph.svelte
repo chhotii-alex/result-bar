@@ -146,9 +146,32 @@
           {/each}
         </g>
         {#each findPopulations(aData) as pop}
+          {#if pop.level < levels}
+            <line
+              x1={width * pop.minX + 14}
+              x2={width * pop.maxX - 28}
+              y1={20 * -pop.level}
+              y2={20 * -pop.level}
+              stroke="black"
+            />
+            <line
+              x1={width * pop.minX + 14}
+              x2={width * pop.minX + 14}
+              y1={20 * -pop.level}
+              y2={20 * -pop.level - 5}
+              stroke="black"
+            />
+            <line
+              x1={width * pop.maxX - 28}
+              x2={width * pop.maxX - 28}
+              y1={20 * -pop.level}
+              y2={20 * -pop.level - 5}
+              stroke="black"
+            />
+          {/if}
           <text
             x={(width * (pop.maxX + pop.minX)) / 2}
-            y={20 * -pop.level}
+            y={20 * -pop.level - 2}
             text-anchor="middle"
           >
             {pop.label}
@@ -164,12 +187,6 @@
     margin: auto;
     text-align: center;
   }
-  div.sizer {
-    xwidth: 100%;
-    xmin-height: 500px;
-    xmax-height: 800px;
-  }
-
   svg {
     /* Note that both of these must be set to keep the graphic from going over the
       top menu banner: */
