@@ -14,6 +14,15 @@
     "BlanchedAlmond",
     "Sienna",
     "DarkSlateGray",
+    "AliceBlue",
+    "Chocolate",
+    "DarkBlue",
+    "DarkGreen",
+    "DarkSalmon",
+    "DarkViolet",
+    "ForestGreen",
+    "Fuchsia",
+    "Gold",
   ];
   let colorIterator = 0;
 
