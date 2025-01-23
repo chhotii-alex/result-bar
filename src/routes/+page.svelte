@@ -72,7 +72,7 @@
             {
               label: "female",
               data: [
-                { label: "white", data: 300 },
+                { label: "white", data: 280 },
                 { label: "Black", data: 30 },
                 { label: "Asian", data: 3 },
                 { label: "Hispanic", data: 45 },
@@ -86,8 +86,8 @@
             {
               label: "male",
               data: [
-                { label: "white", data: 300 },
-                { label: "Black", data: 30 },
+                { label: "white", data: 350 },
+                { label: "Black", data: 20 },
                 { label: "Asian", data: 3 },
                 { label: "Hispanic", data: 45 },
               ],
@@ -95,7 +95,7 @@
             {
               label: "female",
               data: [
-                { label: "white", data: 300 },
+                { label: "white", data: 70 },
                 { label: "Black", data: 30 },
                 { label: "Asian", data: 3 },
                 { label: "Hispanic", data: 45 },

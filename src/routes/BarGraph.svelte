@@ -66,9 +66,25 @@
 
   $: aData = markup(deepCopy(numbers), 0, 1, 0);
 
-  console.log("Data we are working with: ", aData);
+  $: maxValue = findMaxValue(aData);
+
+  $: console.log("Data we are working with: ", aData);
 
   $: levels = findLevels(aData, 0, 1);
+
+  function findMaxValue(population) {
+    if (typeof population.data == "number") {
+      return population.data;
+    }
+    let maxVal = 0.0;
+    for (let i = 0; i < population.data.length; ++i) {
+      let val = findMaxValue(population.data[i]);
+      if (val > maxVal) {
+        maxVal = val;
+      }
+    }
+    return maxVal;
+  }
 
   function findLevels(population, minX, maxX) {
     if (!population) return 0;
@@ -108,24 +124,24 @@
     {numbers.dx}
 </h3>
 
-<div class="sizer" bind:clientWidth bind:clientHeight>
-  {#if clientWidth}
-    <svg height="60vmin" width="60vmin">
+<div class="sizer" bind:clientWidth bind:clientHeight height="60vh" width="90vw">
+  {#if clientWidth && numbers}
+    <svg width="100%" height="60vh" >
       <g transform={`translate(${margin.left}, ${bounds.bottom})`}>
         <g transform="scale(1, -1)">
           {#each populationsAtLevel(aData, levels) as pop}
             <rect
-              x={width * pop.minX + 0.1 * (pop.maxX - pop.minX)}
+              x={width * pop.minX + 0.05 * (pop.maxX - pop.minX)}
               width={width * 0.9 * (pop.maxX - pop.minX)}
-              y={0}
-              height={pop.data}
+              y={20*(levels+1)}
+              height={(height-20*(levels+1)) * pop.data / maxValue}
               fill={pop.color}
             />
           {/each}
         </g>
       {#each findPopulations(aData) as pop}
         <text x={width*(pop.maxX + pop.minX)/2}
-           y={25*pop.level}
+           y={20*(-pop.level)}
            text-anchor="middle"
         >
           {pop.label}
@@ -142,9 +158,9 @@
     text-align: center;
   }
   div.sizer {
-    width: 100%;
-    min-height: 500px;
-    max-height: 800px;
+    xwidth: 100%;
+    xmin-height: 500px;
+    xmax-height: 800px;
   }
 
   svg {

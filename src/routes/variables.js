@@ -5,12 +5,12 @@ export let populationVariables = {
       id: "sex",
       splits: [
         {
-          _checked: false,
+          _checked: true,
           value: "male",
           valueDisplayName: "Male",
         },
         {
-          _checked: false,
+          _checked: true,
           value: "female",
           valueDisplayName: "Female",
         },
@@ -162,22 +162,22 @@ export let populationVariables = {
       id: "eth",
       splits: [
         {
-          _checked: false,
+          _checked: true,
           value: "white",
           valueDisplayName: "White",
         },
         {
-          _checked: false,
+          _checked: true,
           value: "black",
           valueDisplayName: "Black",
         },
         {
-          _checked: false,
+          _checked: true,
           value: "asian",
           valueDisplayName: "Asian/Pacific islander",
         },
         {
-          _checked: false,
+          _checked: true,
           value: "hisp",
           valueDisplayName: "Hispanic",
         },
