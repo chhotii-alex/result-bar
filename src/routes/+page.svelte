@@ -2,7 +2,6 @@
   import { onMount } from "svelte";
   import * as util from "./util.js";
   import { URLforEndpoint } from "./fetching.js";
-  import { populationVariables } from "./variables.js";
   import LabMenuBanner from "./LabMenuBanner.svelte";
   import BarGraph from "./BarGraph.svelte";
   import Histogram from "./Histogram.svelte";
@@ -12,106 +11,28 @@
   let errorState = false;
 
   let dxList = null;
+  let selectedDx = "Helicobacter pylori";
   let variablesDataStructure = null;
   let data = null;
 
   async function fetchDxList() {
-    return [
-      "RUBELLA",
-      "VARICELLA-ZOSTER ",
-      "CLOSTRIDIUM DIFFICILE",
-      "Helicobacter pylori",
-      "RUBEOLA",
-      "HIV-1 quantitative",
-      "HIV-1",
-      "HCV quantitative",
-      "HCV",
-      "Beta Strep Group A",
-      "HBV - quantitative",
-      "HBV",
-      "MUMPS",
-      "LYME",
-      "Cryptosporidium/Giardia",
-      "CMV",
-      "Legionella Urinary Antigen ",
-      "INFLUENZA A antigen",
-      "INFLUENZA A molecular",
-      "Influenza A H1",
-      "Influenza A H1-2009",
-      "Influenza A H3",
-    ];
+    let url = URLforEndpoint("testlist")
+    let response = await fetch(url);
+    let items = await response.json();
+    return Object.getOwnPropertyNames(items);
   }
 
   async function fetchVariables() {
-    /*  TODO depends on back-end being up
      let url = URLforEndpoint("variables");
      let response = await fetch(url);
      let data = await response.json();
-     */
-    let data = populationVariables;
     loadVariableOptions(data);
-  }
-
-  async function fetchData() {
-    let data = {
-      dx: "Helicobacter pylori",
-      label: "all",
-      data: [
-        {
-          label: "positive",
-          data: [
-            {
-              label: "male",
-              data: [
-                { label: "white", data: 300 },
-                { label: "Black", data: 30 },
-                { label: "Asian", data: 3 },
-                { label: "Hispanic", data: 45 },
-              ],
-            },
-            {
-              label: "female",
-              data: [
-                { label: "white", data: 280 },
-                { label: "Black", data: 30 },
-                { label: "Asian", data: 3 },
-                { label: "Hispanic", data: 45 },
-              ],
-            },
-          ],
-        },
-        {
-          label: "negative",
-          data: [
-            {
-              label: "male",
-              data: [
-                { label: "white", data: 350 },
-                { label: "Black", data: 20 },
-                { label: "Asian", data: 3 },
-                { label: "Hispanic", data: 45 },
-              ],
-            },
-            {
-              label: "female",
-              data: [
-                { label: "white", data: 70 },
-                { label: "Black", data: 30 },
-                { label: "Asian", data: 3 },
-                { label: "Hispanic", data: 45 },
-              ],
-            },
-          ],
-        },
-      ],
-    };
-    return data;
   }
 
   async function loadOptions() {
     try {
       dxList = await fetchDxList();
-      let vars = await fetchVariables();
+      await fetchVariables();
       isLoading = false;
     } catch {
       errorState = true;
@@ -123,7 +44,7 @@
   });
 
   $: if (variablesDataStructure) {
-    doQuery(variablesDataStructure);
+    doQuery(variablesDataStructure, selectedDx);
   }
 
   function loadVariableOptions(data) {
@@ -175,22 +96,40 @@
     variablesDataStructure = data;
   }
 
-  async function doQuery(variablesDataStructure) {
+  async function doQuery(variablesDataStructure, dx) {
     isLoading = true;
     let url = URLforEndpoint("data");
-    url += "/labbrowser?";
+    url += "/labbrowser";
 
-    if (variablesDataStructure) {
+    if (!variablesDataStructure) return;
+      let params = {};
       for (let item of variablesDataStructure.items) {
         for (let subItem of item.splits) {
           if (subItem.checked) {
-            url += `${item.id}[]=${subItem.value}&`;
+            if (!params.hasOwnProperty(item.id)) {
+              params[item.id] = []
+            }
+            params[item.id].push(subItem.value);
           }
         }
       }
+
+    let query_params = {
+      "test_name": dx,
+      "params": params,
     }
+    console.log("request body: ", params);
     /* TODO: actually fetch data */
-    data = await fetchData();
+    console.log(url);
+    let response = await fetch(url, {
+      method:"POST",
+      body:JSON.stringify(query_params),
+       headers: {
+       "Content-Type": "application/json",
+       },   
+      }) 
+    data = await response.json();
+    console.log(data);
     isLoading = false;
   }
 
@@ -224,13 +163,11 @@
   </h1>
 {:else}
   {#if dxList}
-    <select name="dx" id="dx">
+    <select name="dx" id="dx"
+      bind:value={selectedDx}
+    >
       {#each dxList as dx}
-        {#if dx == "Helicobacter pylori"}
-          <option selected>{dx} </option>
-        {:else}
-          <option>{dx} </option>
-        {/if}
+        <option value={dx} >{dx} </option>
       {/each}
     </select>
   {/if}
@@ -238,7 +175,9 @@
   <VariablesPicker bind:variablesDataStructure />
 
   {#if data}
-    <BarGraph numbers={data} />
+    <div class="bar" >
+      <BarGraph numbers={data} />
+    </div>
   {/if}
 {/if}
 
@@ -321,6 +260,11 @@
       font-size: 14px;
       padding-bottom: 0.3em;
     }
+  }
+
+  div.bar {
+     max-width: 900px;
+     margin: auto;
   }
 
   .performance_commentary {
