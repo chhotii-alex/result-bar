@@ -60,17 +60,17 @@
     population.level = level;
     population.color = getNextColor();
     if (population.data) {
-    if (typeof population.data != "number") {
-      let childWidth = (maxX - minX) / population.data.length;
-      for (let i = 0; i < population.data.length; ++i) {
-        markup(
-          population.data[i],
-          minX + i * childWidth,
-          minX + (i + 1) * childWidth,
-          level + 1
-        );
+      if (typeof population.data != "number") {
+        let childWidth = (maxX - minX) / population.data.length;
+        for (let i = 0; i < population.data.length; ++i) {
+          markup(
+            population.data[i],
+            minX + i * childWidth,
+            minX + (i + 1) * childWidth,
+            level + 1
+          );
+        }
       }
-    }
     }
     return population;
   }
@@ -89,12 +89,12 @@
     }
     let maxVal = 0.0;
     if (population.data) {
-    for (let i = 0; i < population.data.length; ++i) {
-      let val = findMaxValue(population.data[i]);
-      if (val > maxVal) {
-        maxVal = val;
+      for (let i = 0; i < population.data.length; ++i) {
+        let val = findMaxValue(population.data[i]);
+        if (val > maxVal) {
+          maxVal = val;
+        }
       }
-    }
     }
     return maxVal;
   }
@@ -104,10 +104,10 @@
     if (typeof population.data == "number") return 0;
     let maxDepth = 0;
     if (population.data) {
-    for (let i = 0; i < population.data.length; ++i) {
-      let childDepth = findLevels(population.data[i]);
-      if (childDepth > maxDepth) maxDepth = childDepth;
-    }
+      for (let i = 0; i < population.data.length; ++i) {
+        let childDepth = findLevels(population.data[i]);
+        if (childDepth > maxDepth) maxDepth = childDepth;
+      }
     }
     return maxDepth + 1;
   }
@@ -120,10 +120,10 @@
     let a = [];
     if (!population) return a;
     if (population.data) {
-    if (typeof population.data != "number") {
-      a = population.data.map((pop) => findPopulations(pop));
-    }
-    a.push(population);
+      if (typeof population.data != "number") {
+        a = population.data.map((pop) => findPopulations(pop));
+      }
+      a.push(population);
     }
     return a.flat();
   }
@@ -153,15 +153,15 @@
       <g transform={`translate(${margin.left}, ${bounds.bottom})`}>
         <g transform="scale(1, -1)">
           {#if height > 20}
-          {#each populationsAtLevel(aData, levels) as pop}
-            <rect
-              x={width * pop.minX + 0.05 * (pop.maxX - pop.minX)}
-              width={width * 0.9 * (pop.maxX - pop.minX)}
-              y={20 * (levels + 1)}
-              height={((height - 20 * (levels + 1)) * pop.data) / maxValue}
-              fill={pop.color}
-            />
-          {/each}
+            {#each populationsAtLevel(aData, levels) as pop}
+              <rect
+                x={width * pop.minX + 0.05 * (pop.maxX - pop.minX)}
+                width={width * 0.9 * (pop.maxX - pop.minX)}
+                y={20 * (levels + 1)}
+                height={((height - 20 * (levels + 1)) * pop.data) / maxValue}
+                fill={pop.color}
+              />
+            {/each}
           {/if}
         </g>
         {#each findPopulations(aData) as pop}

@@ -16,16 +16,16 @@
   let data = null;
 
   async function fetchDxList() {
-    let url = URLforEndpoint("testlist")
+    let url = URLforEndpoint("testlist");
     let response = await fetch(url);
     let items = await response.json();
     return Object.getOwnPropertyNames(items);
   }
 
   async function fetchVariables() {
-     let url = URLforEndpoint("variables");
-     let response = await fetch(url);
-     let data = await response.json();
+    let url = URLforEndpoint("variables");
+    let response = await fetch(url);
+    let data = await response.json();
     loadVariableOptions(data);
   }
 
@@ -102,32 +102,32 @@
     url += "/labbrowser";
 
     if (!variablesDataStructure) return;
-      let params = {};
-      for (let item of variablesDataStructure.items) {
-        for (let subItem of item.splits) {
-          if (subItem.checked) {
-            if (!params.hasOwnProperty(item.id)) {
-              params[item.id] = []
-            }
-            params[item.id].push(subItem.value);
+    let params = {};
+    for (let item of variablesDataStructure.items) {
+      for (let subItem of item.splits) {
+        if (subItem.checked) {
+          if (!params.hasOwnProperty(item.id)) {
+            params[item.id] = [];
           }
+          params[item.id].push(subItem.value);
         }
       }
+    }
 
     let query_params = {
-      "test_name": dx,
-      "params": params,
-    }
+      test_name: dx,
+      params: params,
+    };
     console.log("request body: ", params);
     /* TODO: actually fetch data */
     console.log(url);
     let response = await fetch(url, {
-      method:"POST",
-      body:JSON.stringify(query_params),
-       headers: {
-       "Content-Type": "application/json",
-       },   
-      }) 
+      method: "POST",
+      body: JSON.stringify(query_params),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     data = await response.json();
     console.log(data);
     isLoading = false;
@@ -163,11 +163,9 @@
   </h1>
 {:else}
   {#if dxList}
-    <select name="dx" id="dx"
-      bind:value={selectedDx}
-    >
+    <select name="dx" id="dx" bind:value={selectedDx}>
       {#each dxList as dx}
-        <option value={dx} >{dx} </option>
+        <option value={dx}>{dx} </option>
       {/each}
     </select>
   {/if}
@@ -175,7 +173,7 @@
   <VariablesPicker bind:variablesDataStructure />
 
   {#if data}
-    <div class="bar" >
+    <div class="bar">
       <BarGraph numbers={data} />
     </div>
   {/if}
@@ -263,8 +261,8 @@
   }
 
   div.bar {
-     max-width: 900px;
-     margin: auto;
+    max-width: 900px;
+    margin: auto;
   }
 
   .performance_commentary {
