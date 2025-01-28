@@ -79,8 +79,6 @@
 
   $: maxValue = findMaxValue(aData);
 
-  $: console.log("Data we are working with: ", aData);
-
   $: levels = findLevels(aData, 0, 1);
 
   function findMaxValue(population) {

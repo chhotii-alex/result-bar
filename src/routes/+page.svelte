@@ -118,7 +118,6 @@
       test_name: dx,
       params: params,
     };
-    console.log("request body: ", params);
     /* TODO: actually fetch data */
     console.log(url);
     let response = await fetch(url, {
@@ -129,7 +128,6 @@
       },
     });
     data = await response.json();
-    console.log(data);
     isLoading = false;
   }
 
@@ -210,11 +208,6 @@
       padding-top: 120px;
     }
   }
-  @media only print {
-    .savebuttons {
-      display: none;
-    }
-  }
 
   select#dx {
     margin: 20px auto;
@@ -231,44 +224,11 @@
   .histogram {
     width: 100%;
   }
-  .all_groups {
-    grid-area: max80emLeftContent;
-    min-height: 500px;
-    max-height: 800px;
-  }
-  .one_group {
-    grid-area: max80emLeftContent;
-    aspect-ratio: 1.618 / 1;
-  }
   @media only print {
     .histogram {
       page-break-after: always;
     }
   }
-  .groupcomment {
-    font-size: 18px;
-    line-height: 1.2em;
-    padding-bottom: 0.7em;
-  }
-  .groupCommentSpace {
-    padding-bottom: 1.5em;
-  }
-  @media only screen and (max-width: 72em) {
-    .groupcomment {
-      font-size: 14px;
-      padding-bottom: 0.3em;
-    }
-  }
-
-  div.bar {
-    max-width: 900px;
-    margin: auto;
-  }
-
-  .performance_commentary {
-    margin-left: 10px;
-  }
-
   .hideLoading {
     display: none;
   }
@@ -280,33 +240,8 @@
     display: block;
   }
 
-  .showingAntigenPerformance {
-    display: grid;
-  }
-  .anti_legend {
-    padding-top: 1em;
-  }
-
   .spacer {
     padding-top: 2em;
   }
 
-  .legend {
-    display: grid;
-    grid-template-columns: 1.75em 1fr;
-    grid-template-areas: "legendmark legendtext";
-  }
-  .legendmark {
-    grid-area: legendmark;
-    padding: 0.25em;
-  }
-  .legendtext {
-    grid-area: legendtext;
-  }
-  .senspec_value {
-    font-weight: 600;
-  }
-  .cm {
-    padding-bottom: 0.5em;
-  }
 </style>
