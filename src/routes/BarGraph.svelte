@@ -262,7 +262,6 @@
   }
 
   $: labelAreaWidth = getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4);
-
 </script>
 
 <h3>
@@ -294,53 +293,53 @@
         </g>
         {#each findPopulations(aData) as pop}
           {#if pop.level < levels}
-            {#if horizontal && (pop.level > 0)}}
-            <line
-              x1={labelX(pop)+4}
-              x2={labelX(pop)+4}
-              y1={height * pop.minX + 14}
-              y2={height * pop.maxX - 24}
-              stroke="black"
-            />
-             <line
-              x1={labelX(pop)+4}
-              x2={labelX(pop)+14}
-              y1={height * pop.minX + 14}
-              y2={height * pop.minX + 14}
-              stroke="black"
-            />
-             <line
-              x1={labelX(pop)+4}
-              x2={labelX(pop)+14}
-              y1={height * pop.maxX - 24}
-              y2={height * pop.maxX - 24}
-              stroke="black"
-            />
-           {:else if !horizontal }
-            <line
-              x1={width * pop.minX + 14}
-              x2={width * pop.maxX - 28}
-              y1={20 * -pop.level}
-              y2={20 * -pop.level}
-              stroke="black"
-            />
-            <line
-              x1={width * pop.minX + 14}
-              x2={width * pop.minX + 14}
-              y1={20 * -pop.level}
-              y2={20 * -pop.level - 5}
-              stroke="black"
-            />
-            <line
-              x1={width * pop.maxX - 28}
-              x2={width * pop.maxX - 28}
-              y1={20 * -pop.level}
-              y2={20 * -pop.level - 5}
-              stroke="black"
-            />
+            {#if horizontal && pop.level > 0}}
+              <line
+                x1={labelX(pop) + 4}
+                x2={labelX(pop) + 4}
+                y1={height * pop.minX + 14}
+                y2={height * pop.maxX - 24}
+                stroke="black"
+              />
+              <line
+                x1={labelX(pop) + 4}
+                x2={labelX(pop) + 14}
+                y1={height * pop.minX + 14}
+                y2={height * pop.minX + 14}
+                stroke="black"
+              />
+              <line
+                x1={labelX(pop) + 4}
+                x2={labelX(pop) + 14}
+                y1={height * pop.maxX - 24}
+                y2={height * pop.maxX - 24}
+                stroke="black"
+              />
+            {:else if !horizontal}
+              <line
+                x1={width * pop.minX + 14}
+                x2={width * pop.maxX - 28}
+                y1={20 * -pop.level}
+                y2={20 * -pop.level}
+                stroke="black"
+              />
+              <line
+                x1={width * pop.minX + 14}
+                x2={width * pop.minX + 14}
+                y1={20 * -pop.level}
+                y2={20 * -pop.level - 5}
+                stroke="black"
+              />
+              <line
+                x1={width * pop.maxX - 28}
+                x2={width * pop.maxX - 28}
+                y1={20 * -pop.level}
+                y2={20 * -pop.level - 5}
+                stroke="black"
+              />
             {/if}
           {/if}
-          {#if !horizontal || (pop.level > 0) }
+          {#if !horizontal || pop.level > 0}
             <text
               x={labelX(pop, horizontal)}
               y={labelY(pop, clientHeight, horizontal)}
@@ -352,10 +351,18 @@
         {/each}
 
         <!-- Discreetly find out the text size of our labels -->
-        <text x="-1000" y="-1000" bind:this={strSizer_1}>m {longestLevel_1} </text>
-        <text x="-1000" y="-1000" bind:this={strSizer_2}>m {longestLevel_2} </text>
-        <text x="-1000" y="-1000" bind:this={strSizer_3}>m {longestLevel_3} </text>
-        <text x="-1000" y="-1000" bind:this={strSizer_4}>m {longestLevel_4} </text>
+        <text x="-1000" y="-1000" bind:this={strSizer_1}
+          >m {longestLevel_1}
+        </text>
+        <text x="-1000" y="-1000" bind:this={strSizer_2}
+          >m {longestLevel_2}
+        </text>
+        <text x="-1000" y="-1000" bind:this={strSizer_3}
+          >m {longestLevel_3}
+        </text>
+        <text x="-1000" y="-1000" bind:this={strSizer_4}
+          >m {longestLevel_4}
+        </text>
       </g>
     </svg>
   {/if}
