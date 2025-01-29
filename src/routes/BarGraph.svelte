@@ -1,4 +1,5 @@
 <script>
+  import { tick }  from 'svelte';
   export let numbers;
   export let horizontal = false;
 
@@ -148,10 +149,37 @@
   let strSizer_3;
   let strSizer_4;
 
-  $: bb_1 = strSizer_1?.getBBox();
-  $: bb_2 = strSizer_2?.getBBox();
-  $: bb_3 = strSizer_3?.getBBox();
-  $: bb_4 = strSizer_4?.getBBox();
+  let bb_1, bb_2, bb_3, bb_4;
+  let labelAreaWidth;
+
+  function updateSizes() {
+    tick().then(() => {
+      bb_1 = strSizer_1?.getBBox();
+      bb_2 = strSizer_2?.getBBox();
+      bb_3 = strSizer_3?.getBBox();
+      bb_4 = strSizer_4?.getBBox();
+      labelAreaWidth = getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4);
+    });
+  }
+
+  $: updateSizes(longestLevel_1, longestLevel_2, longestLevel_3, longestLevel_4);
+
+  function getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4) {
+    let sum = 0;
+    if (bb_1 !== undefined) {
+      sum += bb_1.width;
+    }
+    if (bb_2 !== undefined) {
+      sum += bb_2.width;
+    }
+    if (bb_3 !== undefined) {
+      sum += bb_3.width;
+    }
+    if (bb_4 !== undefined) {
+      sum += bb_4.width;
+    }
+    return sum;
+  }
 
   function barX(pop) {
     if (horizontal) {
@@ -163,7 +191,7 @@
 
   function barWidth(pop) {
     if (horizontal) {
-      return ((width - 20 * (levels + 1)) * pop.data) / maxValue;
+      return (width - labelAreaWidth) * (pop.data / maxValue);
     } else {
       return width * 0.9 * (pop.maxX - pop.minX);
     }
@@ -189,19 +217,20 @@
     if (!clientWidth) return 0;
     if (bb_4 === undefined) return 0;
     if (horizontal) {
-      let total = 0;
-      if (pop.level > 4) {
+      let total = 0; //-(bb_1.width);
+      if (pop.level >= 4) {
         total += bb_4.width;
       }
-      if (pop.level > 3) {
+      if (pop.level >= 3) {
         total += bb_3.width;
       }
-      if (pop.level > 2) {
+      if (pop.level >= 2) {
         total += bb_2.width;
       }
-      if (pop.level > 1) {
+      if (pop.level >= 1) {
         total += bb_1.width;
       }
+      
       return total;
     } else {
       return (width * (pop.maxX + pop.minX)) / 2;
@@ -246,24 +275,6 @@
 
   $: textAnchor = getTextAnchor(horizontal);
 
-  function getLabelAreaWidth() {
-    let sum = 0;
-    if (bb_1 !== undefined) {
-      sum += bb_1.width;
-    }
-    if (bb_2 !== undefined) {
-      sum += bb_2.width;
-    }
-    if (bb_3 !== undefined) {
-      sum += bb_4.width;
-    }
-    if (bb_4 !== undefined) {
-      sum += bb_4.width;
-    }
-    return sum;
-  }
-
-  $: labelAreaWidth = getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4);
 </script>
 
 <h3>
@@ -275,7 +286,7 @@
   bind:clientWidth
   bind:clientHeight
   height="60vh"
-  width="90vw"
+  width="80vw"
 >
   {#if clientWidth && numbers}
     <svg width="100%" height="60vh">
@@ -284,8 +295,8 @@
           {#if height > 20}
             {#each populationsAtLevel(aData, levels) as pop}
               <rect
-                x={barX(pop, horizontal)}
-                width={barWidth(pop, horizontal)}
+                x={barX(pop, horizontal, labelAreaWidth)}
+                width={barWidth(pop, horizontal, labelAreaWidth)}
                 y={barY(pop, horizontal)}
                 height={barHeight(pop, horizontal)}
                 fill={pop.color}
@@ -297,22 +308,22 @@
           {#if pop.level < levels}
             {#if horizontal && pop.level > 0}}
               <line
-                x1={labelX(pop, bb_1) + 4}
-                x2={labelX(pop, bb_1) + 4}
+                x1={labelX(pop, labelAreaWidth) + 4}
+                x2={labelX(pop, labelAreaWidth) + 4}
                 y1={height * pop.minX + 14}
                 y2={height * pop.maxX - 24}
                 stroke="black"
               />
               <line
-                x1={labelX(pop, bb_1) + 4}
-                x2={labelX(pop, bb_1) + 14}
+                x1={labelX(pop, labelAreaWidth) + 4}
+                x2={labelX(pop, labelAreaWidth) + 14}
                 y1={height * pop.minX + 14}
                 y2={height * pop.minX + 14}
                 stroke="black"
               />
               <line
-                x1={labelX(pop, bb_1) + 4}
-                x2={labelX(pop, bb_1) + 14}
+                x1={labelX(pop, labelAreaWidth) + 4}
+                x2={labelX(pop, labelAreaWidth) + 14}
                 y1={height * pop.maxX - 24}
                 y2={height * pop.maxX - 24}
                 stroke="black"
@@ -343,8 +354,8 @@
           {/if}
           {#if !horizontal || pop.level > 0}
             <text
-              x={labelX(pop, horizontal, bb_1)}
-              y={labelY(pop, clientHeight, horizontal, bb_1)}
+              x={labelX(pop, horizontal, labelAreaWidth)}
+              y={labelY(pop, clientHeight, horizontal, labelAreaWidth)}
               text-anchor={textAnchor}
             >
               {pop.label}
