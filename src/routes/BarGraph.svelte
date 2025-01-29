@@ -155,7 +155,7 @@
 
   function barX(pop) {
     if (horizontal) {
-      return 0;
+      return labelAreaWidth;
     } else {
       return width * pop.minX + 0.05 * (pop.maxX - pop.minX);
     }
@@ -187,7 +187,20 @@
 
   function labelX(pop) {
     if (horizontal) {
-      return -5;
+      let total = 0;
+      if (pop.level > 4) {
+        total += bb_4.width;
+      }
+      if (pop.level > 3) {
+        total += bb_3.width;
+      }
+      if (pop.level > 2) {
+        total += bb_2.width;
+      }
+      if (pop.level > 1) {
+        total += bb_1.width;
+      }
+      return total;
     } else {
       return (width * (pop.maxX + pop.minX)) / 2;
     }
@@ -230,18 +243,31 @@
   }
 
   $: textAnchor = getTextAnchor(horizontal);
+
+  function getLabelAreaWidth() {
+    let sum = 0;
+    if (bb_1 !== undefined) {
+      sum += bb_1.width;
+    }
+    if (bb_2 !== undefined) {
+      sum += bb_2.width;
+    }
+    if (bb_3 !== undefined) {
+      sum += bb_4.width;
+    }
+    if (bb_4 !== undefined) {
+      sum += bb_4.width;
+    }
+    return sum;
+  }
+
+  $: labelAreaWidth = getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4);
+
 </script>
 
 <h3>
   {numbers.dx}
 </h3>
-
-{longestLevel_1}
-{bb_1?.width}
-{longestLevel_2}
-{bb_2?.width}
-{bb_3?.width}
-{bb_4?.width}
 
 <div
   class="sizer"
@@ -267,7 +293,30 @@
           {/if}
         </g>
         {#each findPopulations(aData) as pop}
-          {#if !horizontal && pop.level < levels}
+          {#if pop.level < levels}
+            {#if horizontal && (pop.level > 0)}}
+            <line
+              x1={labelX(pop)+4}
+              x2={labelX(pop)+4}
+              y1={height * pop.minX + 14}
+              y2={height * pop.maxX - 24}
+              stroke="black"
+            />
+             <line
+              x1={labelX(pop)+4}
+              x2={labelX(pop)+14}
+              y1={height * pop.minX + 14}
+              y2={height * pop.minX + 14}
+              stroke="black"
+            />
+             <line
+              x1={labelX(pop)+4}
+              x2={labelX(pop)+14}
+              y1={height * pop.maxX - 24}
+              y2={height * pop.maxX - 24}
+              stroke="black"
+            />
+           {:else if !horizontal }
             <line
               x1={width * pop.minX + 14}
               x2={width * pop.maxX - 28}
@@ -289,8 +338,9 @@
               y2={20 * -pop.level - 5}
               stroke="black"
             />
+            {/if}
           {/if}
-          {#if !horizontal || pop.level == levels}
+          {#if !horizontal || (pop.level > 0) }
             <text
               x={labelX(pop, horizontal)}
               y={labelY(pop, clientHeight, horizontal)}
@@ -302,10 +352,10 @@
         {/each}
 
         <!-- Discreetly find out the text size of our labels -->
-        <text x="-1000" y="-1000" bind:this={strSizer_1}>{longestLevel_1}</text>
-        <text x="-1000" y="-1000" bind:this={strSizer_2}>{longestLevel_2}</text>
-        <text x="-1000" y="-1000" bind:this={strSizer_3}>{longestLevel_3}</text>
-        <text x="-1000" y="-1000" bind:this={strSizer_4}>{longestLevel_4}</text>
+        <text x="-1000" y="-1000" bind:this={strSizer_1}>m {longestLevel_1} </text>
+        <text x="-1000" y="-1000" bind:this={strSizer_2}>m {longestLevel_2} </text>
+        <text x="-1000" y="-1000" bind:this={strSizer_3}>m {longestLevel_3} </text>
+        <text x="-1000" y="-1000" bind:this={strSizer_4}>m {longestLevel_4} </text>
       </g>
     </svg>
   {/if}
