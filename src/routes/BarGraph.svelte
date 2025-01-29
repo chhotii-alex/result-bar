@@ -186,6 +186,8 @@
   }
 
   function labelX(pop) {
+    if (!clientWidth) return 0;
+    if (bb_4 === undefined) return 0;
     if (horizontal) {
       let total = 0;
       if (pop.level > 4) {
@@ -295,22 +297,22 @@
           {#if pop.level < levels}
             {#if horizontal && pop.level > 0}}
               <line
-                x1={labelX(pop) + 4}
-                x2={labelX(pop) + 4}
+                x1={labelX(pop, bb_1) + 4}
+                x2={labelX(pop, bb_1) + 4}
                 y1={height * pop.minX + 14}
                 y2={height * pop.maxX - 24}
                 stroke="black"
               />
               <line
-                x1={labelX(pop) + 4}
-                x2={labelX(pop) + 14}
+                x1={labelX(pop, bb_1) + 4}
+                x2={labelX(pop, bb_1) + 14}
                 y1={height * pop.minX + 14}
                 y2={height * pop.minX + 14}
                 stroke="black"
               />
               <line
-                x1={labelX(pop) + 4}
-                x2={labelX(pop) + 14}
+                x1={labelX(pop, bb_1) + 4}
+                x2={labelX(pop, bb_1) + 14}
                 y1={height * pop.maxX - 24}
                 y2={height * pop.maxX - 24}
                 stroke="black"
@@ -341,8 +343,8 @@
           {/if}
           {#if !horizontal || pop.level > 0}
             <text
-              x={labelX(pop, horizontal)}
-              y={labelY(pop, clientHeight, horizontal)}
+              x={labelX(pop, horizontal, bb_1)}
+              y={labelY(pop, clientHeight, horizontal, bb_1)}
               text-anchor={textAnchor}
             >
               {pop.label}

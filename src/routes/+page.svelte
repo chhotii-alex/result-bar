@@ -135,7 +135,7 @@
     maximumSignificantDigits: 4,
   });
 
-  let horizontal = false;
+  let horizontal = true;
 </script>
 
 <LabMenuBanner />
@@ -172,8 +172,6 @@
 
   <VariablesPicker bind:variablesDataStructure />
 
-  <input type="checkbox" bind:checked={horizontal} />
-  {horizontal}
   {#if data}
     <div class="bar">
       <BarGraph numbers={data} {horizontal} />
