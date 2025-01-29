@@ -134,6 +134,8 @@
   let numberFormatter = new Intl.NumberFormat("en-US", {
     maximumSignificantDigits: 4,
   });
+
+   let horizontal = false;
 </script>
 
 <LabMenuBanner />
@@ -170,9 +172,10 @@
 
   <VariablesPicker bind:variablesDataStructure />
 
+  <input type="checkbox" bind:checked={horizontal} /> {horizontal}
   {#if data}
     <div class="bar">
-      <BarGraph numbers={data} />
+      <BarGraph numbers={data} {horizontal} />
     </div>
   {/if}
 {/if}

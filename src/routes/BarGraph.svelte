@@ -1,5 +1,6 @@
 <script>
   export let numbers;
+  export let horizontal = false;
 
   let colorNames = [
     "Crimson",
@@ -33,7 +34,7 @@
     return a;
   }
 
-  const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+  const margin = { top: 20, right: 100, bottom: 20, left: 100 };
 
   let clientWidth;
   let clientHeight;
@@ -110,10 +111,6 @@
     return maxDepth + 1;
   }
 
-  function getLabel(population) {
-    return `${population.label} ${population.minX} ${population.maxX} ${population.level}`;
-  }
-
   function findPopulations(population) {
     let a = [];
     if (!population) return a;
@@ -126,18 +123,133 @@
     return a.flat();
   }
 
-  function findLabels2(population) {
-    return findPopulations(population).map((pop) => getLabel(pop));
-  }
-
   function populationsAtLevel(population, n) {
     return findPopulations(population).filter((pop) => pop.level == n);
   }
+
+  function longestStringAtLevel(population, n) {
+     let winner = "";
+     let pops = populationsAtLevel(population, n);
+     for (let i = 0; i < pops.length; ++i) {
+        if (pops[i].label.length > winner.length) {
+          winner = pops[i].label
+        }
+     }
+     return winner;
+  }
+
+  $: longestLevel_1 = longestStringAtLevel(aData, 1) 
+  $: longestLevel_2 = longestStringAtLevel(aData, 2) 
+  $: longestLevel_3 = longestStringAtLevel(aData, 3) 
+  $: longestLevel_4 = longestStringAtLevel(aData, 4)
+
+  let strSizer_1;
+  let strSizer_2;
+  let strSizer_3;
+  let strSizer_4;
+
+  $: bb_1 = strSizer_1?.getBBox();
+  $: bb_2 = strSizer_2?.getBBox();
+  $: bb_3 = strSizer_3?.getBBox();
+  $: bb_4 = strSizer_4?.getBBox();
+
+  function barX(pop) {
+    if (horizontal) {
+      return 0;
+    }
+    else {
+      return width * pop.minX + 0.05 * (pop.maxX - pop.minX);
+    }
+  }
+
+  function barWidth(pop) {
+    if (horizontal) {
+      return ((width - 20 * (levels + 1)) * pop.data) / maxValue;
+    }
+    else {
+      return width * 0.9 * (pop.maxX - pop.minX);
+    }
+  }
+
+  function barY(pop) {
+    if (horizontal) {
+      return height * pop.minX + 0.05 * (pop.maxX - pop.minX);
+    }
+    else {
+      return 20 * (levels + 1);
+    }
+  }
+
+  function barHeight(pop) {
+    if (horizontal) {
+      return height * 0.9 * (pop.maxX - pop.minX);
+    }
+    else {
+      return ((height - 20 * (levels + 1)) * pop.data) / maxValue;
+    }
+  }
+
+  function labelX(pop) {
+    if (horizontal) {
+      return -5;
+    }
+    else {
+      return (width * (pop.maxX + pop.minX)) / 2;
+    }
+  }
+
+  function labelY(pop) {
+    if (horizontal) {
+      return height * pop.minX + 0.5 * height * (pop.maxX - pop.minX);
+    }
+    else {
+      return 20 * -pop.level - 2;
+    }
+  }
+
+  function getTranslation(theBounds, isHorizontal) {
+    if (isHorizontal) {
+      return `translate(${margin.left}, ${margin.bottom})`;
+    }
+    else {
+      return `translate(${margin.left}, ${theBounds.bottom})`;
+    }
+  }
+
+  $: translation = getTranslation(bounds, horizontal);
+
+  function getBarTransform(isHorizontal) {
+    if (isHorizontal) {
+      return "scale(1, 1)";
+    }
+    else {
+      return "scale(1, -1)";
+    }
+   }
+
+   $: barTransform = getBarTransform(horizontal);
+ 
+ function getTextAnchor(isHorizontal) {
+   if (isHorizontal) {
+     return "end";
+   }
+   else {
+     return "middle";
+   }
+ }
+
+ $: textAnchor = getTextAnchor(horizontal);
+
 </script>
 
 <h3>
   {numbers.dx}
 </h3>
+
+{longestLevel_1} {bb_1?.width}
+{longestLevel_2} {bb_2?.width}
+{bb_3?.width}
+{bb_4?.width}
 
 <div
   class="sizer"
@@ -148,22 +260,22 @@
 >
   {#if clientWidth && numbers}
     <svg width="100%" height="60vh">
-      <g transform={`translate(${margin.left}, ${bounds.bottom})`}>
-        <g transform="scale(1, -1)">
+      <g transform={translation}>
+        <g transform={barTransform}>
           {#if height > 20}
             {#each populationsAtLevel(aData, levels) as pop}
               <rect
-                x={width * pop.minX + 0.05 * (pop.maxX - pop.minX)}
-                width={width * 0.9 * (pop.maxX - pop.minX)}
-                y={20 * (levels + 1)}
-                height={((height - 20 * (levels + 1)) * pop.data) / maxValue}
+                x={barX(pop, horizontal)}
+                width={barWidth(pop, horizontal)}
+                y={barY(pop, horizontal)}
+                height={barHeight(pop, horizontal)}
                 fill={pop.color}
               />
             {/each}
           {/if}
         </g>
         {#each findPopulations(aData) as pop}
-          {#if pop.level < levels}
+          {#if !horizontal && (pop.level < levels)}
             <line
               x1={width * pop.minX + 14}
               x2={width * pop.maxX - 28}
@@ -186,14 +298,26 @@
               stroke="black"
             />
           {/if}
-          <text
-            x={(width * (pop.maxX + pop.minX)) / 2}
-            y={20 * -pop.level - 2}
-            text-anchor="middle"
-          >
+          {#if !horizontal || (pop.level == levels) }
+           <text
+            x={labelX(pop, horizontal)}
+            y={labelY(pop, clientHeight, horizontal)}
+            text-anchor={textAnchor}
+           >
             {pop.label}
-          </text>
+           </text>
+
+
+            {/if}
         {/each}
+
+            <!-- Discreetly find out the text size of our labels -->
+            <text x="-1000" y="-1000" bind:this={strSizer_1}>{ longestLevel_1 }</text>
+            <text x="-1000" y="-1000" bind:this={strSizer_2}>{ longestLevel_2 }</text>
+            <text x="-1000" y="-1000" bind:this={strSizer_3}>{ longestLevel_3 }</text>
+            <text x="-1000" y="-1000" bind:this={strSizer_4}>{ longestLevel_4 }</text>
+
+
       </g>
     </svg>
   {/if}
