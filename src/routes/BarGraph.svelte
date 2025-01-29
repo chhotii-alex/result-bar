@@ -128,20 +128,20 @@
   }
 
   function longestStringAtLevel(population, n) {
-     let winner = "";
-     let pops = populationsAtLevel(population, n);
-     for (let i = 0; i < pops.length; ++i) {
-        if (pops[i].label.length > winner.length) {
-          winner = pops[i].label
-        }
-     }
-     return winner;
+    let winner = "";
+    let pops = populationsAtLevel(population, n);
+    for (let i = 0; i < pops.length; ++i) {
+      if (pops[i].label.length > winner.length) {
+        winner = pops[i].label;
+      }
+    }
+    return winner;
   }
 
-  $: longestLevel_1 = longestStringAtLevel(aData, 1) 
-  $: longestLevel_2 = longestStringAtLevel(aData, 2) 
-  $: longestLevel_3 = longestStringAtLevel(aData, 3) 
-  $: longestLevel_4 = longestStringAtLevel(aData, 4)
+  $: longestLevel_1 = longestStringAtLevel(aData, 1);
+  $: longestLevel_2 = longestStringAtLevel(aData, 2);
+  $: longestLevel_3 = longestStringAtLevel(aData, 3);
+  $: longestLevel_4 = longestStringAtLevel(aData, 4);
 
   let strSizer_1;
   let strSizer_2;
@@ -156,8 +156,7 @@
   function barX(pop) {
     if (horizontal) {
       return 0;
-    }
-    else {
+    } else {
       return width * pop.minX + 0.05 * (pop.maxX - pop.minX);
     }
   }
@@ -165,8 +164,7 @@
   function barWidth(pop) {
     if (horizontal) {
       return ((width - 20 * (levels + 1)) * pop.data) / maxValue;
-    }
-    else {
+    } else {
       return width * 0.9 * (pop.maxX - pop.minX);
     }
   }
@@ -174,8 +172,7 @@
   function barY(pop) {
     if (horizontal) {
       return height * pop.minX + 0.05 * (pop.maxX - pop.minX);
-    }
-    else {
+    } else {
       return 20 * (levels + 1);
     }
   }
@@ -183,8 +180,7 @@
   function barHeight(pop) {
     if (horizontal) {
       return height * 0.9 * (pop.maxX - pop.minX);
-    }
-    else {
+    } else {
       return ((height - 20 * (levels + 1)) * pop.data) / maxValue;
     }
   }
@@ -192,8 +188,7 @@
   function labelX(pop) {
     if (horizontal) {
       return -5;
-    }
-    else {
+    } else {
       return (width * (pop.maxX + pop.minX)) / 2;
     }
   }
@@ -201,8 +196,7 @@
   function labelY(pop) {
     if (horizontal) {
       return height * pop.minX + 0.5 * height * (pop.maxX - pop.minX);
-    }
-    else {
+    } else {
       return 20 * -pop.level - 2;
     }
   }
@@ -210,8 +204,7 @@
   function getTranslation(theBounds, isHorizontal) {
     if (isHorizontal) {
       return `translate(${margin.left}, ${margin.bottom})`;
-    }
-    else {
+    } else {
       return `translate(${margin.left}, ${theBounds.bottom})`;
     }
   }
@@ -221,33 +214,32 @@
   function getBarTransform(isHorizontal) {
     if (isHorizontal) {
       return "scale(1, 1)";
-    }
-    else {
+    } else {
       return "scale(1, -1)";
     }
-   }
+  }
 
-   $: barTransform = getBarTransform(horizontal);
- 
- function getTextAnchor(isHorizontal) {
-   if (isHorizontal) {
-     return "end";
-   }
-   else {
-     return "middle";
-   }
- }
+  $: barTransform = getBarTransform(horizontal);
 
- $: textAnchor = getTextAnchor(horizontal);
+  function getTextAnchor(isHorizontal) {
+    if (isHorizontal) {
+      return "end";
+    } else {
+      return "middle";
+    }
+  }
 
+  $: textAnchor = getTextAnchor(horizontal);
 </script>
 
 <h3>
   {numbers.dx}
 </h3>
 
-{longestLevel_1} {bb_1?.width}
-{longestLevel_2} {bb_2?.width}
+{longestLevel_1}
+{bb_1?.width}
+{longestLevel_2}
+{bb_2?.width}
 {bb_3?.width}
 {bb_4?.width}
 
@@ -275,7 +267,7 @@
           {/if}
         </g>
         {#each findPopulations(aData) as pop}
-          {#if !horizontal && (pop.level < levels)}
+          {#if !horizontal && pop.level < levels}
             <line
               x1={width * pop.minX + 14}
               x2={width * pop.maxX - 28}
@@ -298,26 +290,22 @@
               stroke="black"
             />
           {/if}
-          {#if !horizontal || (pop.level == levels) }
-           <text
-            x={labelX(pop, horizontal)}
-            y={labelY(pop, clientHeight, horizontal)}
-            text-anchor={textAnchor}
-           >
-            {pop.label}
-           </text>
-
-
-            {/if}
+          {#if !horizontal || pop.level == levels}
+            <text
+              x={labelX(pop, horizontal)}
+              y={labelY(pop, clientHeight, horizontal)}
+              text-anchor={textAnchor}
+            >
+              {pop.label}
+            </text>
+          {/if}
         {/each}
 
-            <!-- Discreetly find out the text size of our labels -->
-            <text x="-1000" y="-1000" bind:this={strSizer_1}>{ longestLevel_1 }</text>
-            <text x="-1000" y="-1000" bind:this={strSizer_2}>{ longestLevel_2 }</text>
-            <text x="-1000" y="-1000" bind:this={strSizer_3}>{ longestLevel_3 }</text>
-            <text x="-1000" y="-1000" bind:this={strSizer_4}>{ longestLevel_4 }</text>
-
-
+        <!-- Discreetly find out the text size of our labels -->
+        <text x="-1000" y="-1000" bind:this={strSizer_1}>{longestLevel_1}</text>
+        <text x="-1000" y="-1000" bind:this={strSizer_2}>{longestLevel_2}</text>
+        <text x="-1000" y="-1000" bind:this={strSizer_3}>{longestLevel_3}</text>
+        <text x="-1000" y="-1000" bind:this={strSizer_4}>{longestLevel_4}</text>
       </g>
     </svg>
   {/if}
