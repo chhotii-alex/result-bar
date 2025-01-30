@@ -301,6 +301,12 @@
                 height={barHeight(pop, horizontal)}
                 fill={pop.color}
               />
+              {#if pop.data > 0}
+                <text x={barX(pop, horizontal, labelAreaWidth) + barWidth(pop) - 5}
+                      y = {barY(pop, horizontal) + barHeight(pop, horizontal)/2 + 5}
+                      text-anchor="end"
+                      >{(pop.data).toLocaleString()}</text>
+              {/if}
             {/each}
           {/if}
         </g>
