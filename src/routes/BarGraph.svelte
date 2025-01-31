@@ -80,6 +80,7 @@
   $: aData = markup(deepCopy(numbers), 0, 1, 0);
 
   $: maxValue = findMaxValue(aData);
+  $: maxTotal = findMaxTotal(aData);
 
   $: levels = findLevels(aData, 0, 1);
 
@@ -91,6 +92,24 @@
     if (population.data) {
       for (let i = 0; i < population.data.length; ++i) {
         let val = findMaxValue(population.data[i]);
+        if (val > maxVal) {
+          maxVal = val;
+        }
+      }
+    }
+    return maxVal;
+  }
+
+  function findMaxTotal(population) {
+    if (typeof population.data == "number") {
+      if (population.total) {
+        return population.total;
+      }
+    }
+    let maxVal = 0.0;
+    if (population.data) {
+      for (let i = 0; i < population.data.length; ++i) {
+        let val = findMaxTotal(population.data[i]);
         if (val > maxVal) {
           maxVal = val;
         }
@@ -148,9 +167,11 @@
   let strSizer_2;
   let strSizer_3;
   let strSizer_4;
+  let strSizer_total;
 
-  let bb_1, bb_2, bb_3, bb_4;
-  let labelAreaWidth;
+  let bb_1, bb_2, bb_3, bb_4, bb_total;
+  let labelAreaWidth = 0;
+  let total_nums_width = 0;
 
   function updateSizes() {
     tick().then(() => {
@@ -158,7 +179,9 @@
       bb_2 = strSizer_2?.getBBox();
       bb_3 = strSizer_3?.getBBox();
       bb_4 = strSizer_4?.getBBox();
+      bb_total = strSizer_total?.getBBox();
       labelAreaWidth = getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4);
+      total_nums_width = bb_total ? bb_total.width : 0;
     });
   }
 
@@ -181,17 +204,51 @@
     return sum;
   }
 
+  function ciLow(pop) {
+    if (horizontal) {
+       let p = pop.ci_low;
+       let prop = p * (pop.total / maxValue);
+       let x = (width - (labelAreaWidth + total_nums_width)) * prop;
+       return barX(pop) + x;
+    }
+    return 0;
+  }
+
+  function ciHigh(pop) {
+    if (horizontal) {
+       let p = pop.ci_high;
+       let prop = pop.ci_high * (pop.total / maxValue);
+       let x = (width - (labelAreaWidth + total_nums_width)) * prop;
+       return barX(pop) + x;
+    }
+    return 0;
+  }
+
   function barX(pop) {
     if (horizontal) {
-      return labelAreaWidth;
+      return labelAreaWidth + total_nums_width;
     } else {
       return width * pop.minX + 0.05 * (pop.maxX - pop.minX);
     }
   }
 
+  function barNumberX(pop) {
+    if (horizontal) {
+      let x = barX(pop) + barWidth(pop) - 5;
+      if (x > (ciLow(pop) - 2)) {
+        x = ciLow(pop) - 2;
+      }
+      if (x < (barX(pop) + 50)) {  // TODO: make this more precise
+        x = ciHigh(pop) + 54;
+      }
+      return x;
+    }
+    return 0; // not worked out for vertical case
+  }
+
   function barWidth(pop) {
     if (horizontal) {
-      return (width - labelAreaWidth) * (pop.data / maxValue);
+      return (width - (labelAreaWidth + total_nums_width)) * (pop.data / maxValue);
     } else {
       return width * 0.9 * (pop.maxX - pop.minX);
     }
@@ -293,6 +350,8 @@
       <g transform={translation}>
         <g transform={barTransform}>
           {#if height > 20}
+            <text x={barX(labelAreaWidth) - total_nums_width}
+                 y="0" > total n </text>
             {#each populationsAtLevel(aData, levels) as pop}
               <rect
                 x={barX(pop, horizontal, labelAreaWidth)}
@@ -301,12 +360,28 @@
                 height={barHeight(pop, horizontal)}
                 fill={pop.color}
               />
+              {#if pop.ci_low && pop.ci_high}
+                <line 
+                  x1 = {ciLow(pop, labelAreaWidth)}
+                  x2 = {ciHigh(pop, labelAreaWidth)}
+                  y1 = {barY(pop, horizontal) + 0.5 * barHeight(pop, horizontal) }
+                  y2 = {barY(pop, horizontal) + 0.5 * barHeight(pop, horizontal) }
+                  stroke="black"
+                  />
+              {/if}
               {#if pop.data > 0}
-                <text x={barX(pop, horizontal, labelAreaWidth) + barWidth(pop) - 5}
+                <text x={barNumberX(pop, labelAreaWidth) }
                       y = {barY(pop, horizontal) + barHeight(pop, horizontal)/2 + 5}
                       text-anchor="end"
                       >{(pop.data).toLocaleString()}</text>
               {/if}
+              {#if pop.total}
+                <text x={barX(pop, horizontal, labelAreaWidth) - total_nums_width }
+                   y = {barY(pop, horizontal) + barHeight(pop, horizontal)/2 + 5}
+                 >
+                 {(pop.total).toLocaleString()}
+               </text>
+             {/if}
             {/each}
           {/if}
         </g>
@@ -371,16 +446,19 @@
 
         <!-- Discreetly find out the text size of our labels -->
         <text x="-1000" y="-1000" bind:this={strSizer_1}
-          >m {longestLevel_1}
+          >M {longestLevel_1}
         </text>
         <text x="-1000" y="-1000" bind:this={strSizer_2}
-          >m {longestLevel_2}
+          >M {longestLevel_2}
         </text>
         <text x="-1000" y="-1000" bind:this={strSizer_3}
-          >m {longestLevel_3}
+          >M {longestLevel_3}
         </text>
         <text x="-1000" y="-1000" bind:this={strSizer_4}
-          >m {longestLevel_4}
+          >M {longestLevel_4}
+        </text>
+        <text x="-1000" y="-1000" bind:this={strSizer_total}>
+              {maxTotal.toLocaleString()}
         </text>
       </g>
     </svg>

@@ -1,0 +1,3 @@
+
+
+* BarGraph should react to changes in clientWidth/clientHeight

@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pprint import pp
 from connect import connectionString
+from scipy.stats import binomtest
 
 app = FastAPI()
 
@@ -133,7 +134,41 @@ def get_data(query_params: QueryParams):
                 params,
                 con
             ))
+    # Calculate confidence intervals:
+    #     see https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats._result_classes.BinomTestResult.proportion_ci.html
+    totals = {}
+    remaining_keys = list(params.keys())
+    for result in data['data']:
+        add_to_totals(totals, remaining_keys, result['data'])
+    for result in data['data']:
+        distribute_totals(totals, remaining_keys, result['data'])
     return data
+
+def distribute_totals(totals, remaining_keys, data):
+    for result in data:
+        if type(result['data']) == list:
+            distribute_totals(totals[result['label']],
+                          remaining_keys[1:],
+                          result['data'])
+        else:
+            result['total'] = totals[result['label']]
+            stat_result = binomtest(k=result['data'], n=result['total'], p=0.1)
+            ci = stat_result.proportion_ci()
+            result['ci_low'] = ci.low
+            result['ci_high'] = ci.high
+
+def add_to_totals(totals, remaining_keys, data):
+    for result in data:
+        if type(result['data']) == list:
+            if result['label'] not in totals:
+                totals[result['label']] = {}
+            add_to_totals(totals[result['label']],
+                          remaining_keys[1:],
+                          result['data'])
+        else:
+            if result['label'] not in totals:
+                totals[result['label']] = 0
+            totals[result['label']] += result['data']
 
 def data_for_label(dx, label, query, remaining_keys, params, con):
     result = {"label": label}
