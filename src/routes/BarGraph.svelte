@@ -106,16 +106,22 @@
         return population.total;
       }
     }
-    let maxVal = 0.0;
-    if (population.data) {
+    else if (Array.isArray(population.data)) {
+     let maxVal = 0.0;
+     if (population.data) {
       for (let i = 0; i < population.data.length; ++i) {
         let val = findMaxTotal(population.data[i]);
         if (val > maxVal) {
           maxVal = val;
         }
       }
+     }
+     return maxVal;
     }
-    return maxVal;
+    else {
+      console.log("TODO", population.data);
+      return 0;
+    }
   }
 
   function findLevels(population, minX, maxX) {
@@ -369,7 +375,7 @@
                   stroke="black"
                   />
               {/if}
-              {#if pop.data > 0}
+              {#if pop.data > 0 && pop.ci_low !== undefined }
                 <text x={barNumberX(pop, labelAreaWidth) }
                       y = {barY(pop, horizontal) + barHeight(pop, horizontal)/2 + 5}
                       text-anchor="end"

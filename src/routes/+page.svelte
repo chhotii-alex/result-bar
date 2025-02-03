@@ -118,7 +118,7 @@
       test_name: dx,
       params: params,
     };
-    /* TODO: actually fetch data */
+    /* actually fetch data */
     console.log(url);
     let response = await fetch(url, {
       method: "POST",
@@ -136,6 +136,7 @@
   });
 
   let horizontal = true;
+
 </script>
 
 <LabMenuBanner />
