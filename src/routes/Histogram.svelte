@@ -59,25 +59,6 @@
     heightAdjustment
   );
 
-  $: infectivityRegions = [
-    {
-      title: "NON-CONTAGIOUS",
-      color: "#dbdbdb",
-      min: 0,
-      max: infectivityThreshold,
-      text_anchor: "end",
-      text_x: infectivityThreshold - 0.5,
-    },
-    {
-      title: "CONTAGIOUS",
-      color: "white",
-      min: infectivityThreshold,
-      max: 12,
-      text_anchor: "start",
-      text_x: infectivityThreshold + 0.5,
-    },
-  ];
-
   function calculateXScale(populations, width) {
     if (!width) return null;
     let xValues = [0, 11.01]; // TECHDEBT this should not be hard-coded
@@ -337,36 +318,6 @@
         {/if}
       </g>
 
-      {#if displayInfectivity}
-        <!-- show what range of values represents non-contagious/contagious -->
-        <g
-          class="regiongroup"
-          transform="translate({margin.left}, {margin.top})"
-        >
-          {#each infectivityRegions as region}
-            <g class="i_region">
-              {#if region.min > 0}
-                <line
-                  x1={xScale(region.min)}
-                  y1="0"
-                  x2={xScale(region.min)}
-                  y2={height}
-                  stroke-width="0.25px"
-                  stroke="black"
-                />
-              {/if}
-              <text
-                class="i_label"
-                y="10"
-                text-anchor={region.text_anchor}
-                x={xScale(region.text_x)}
-              >
-                {region.title}
-              </text>
-            </g>
-          {/each}
-        </g>
-      {/if}
     {/if}
   </svg>
 </div>

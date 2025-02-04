@@ -1,5 +1,6 @@
 <script>
   import { tick }  from 'svelte';
+  import Histogram from './Histogram.svelte';
   export let numbers;
   export let horizontal = false;
 
@@ -77,7 +78,39 @@
     return population;
   }
 
+  function flatten(data) {
+    let results = [];
+    for (const pop of data) {
+      if (typeof pop.data == "number") {
+        let obj = {
+          shouldPlot: true,
+          label: pop.label,
+          data: pop.histogram,
+          colors: { count: ["black", getNextColor()] },
+        };
+        results.push(obj);
+      }
+      else {
+        let arr = flatten(pop.data);
+        results = [...results, ...arr];
+      }
+    }
+    return results;
+  }
+
+  function findHistograms(population) {
+     if (!(population.data)) return null;
+     for (let i = 0; i < population.data.length; ++i) {
+        if (population.data[i].type == "histogram") {
+          return flatten(population.data[i].data);
+        }
+     }
+     return null;
+  }
+
   $: aData = markup(deepCopy(numbers), 0, 1, 0);
+
+  $: histograms = findHistograms(aData);
 
   $: maxValue = findMaxValue(aData);
   $: maxTotal = findMaxTotal(aData);
@@ -470,6 +503,11 @@
     </svg>
   {/if}
 </div>
+{#if histograms}
+  <div class="hissy" >
+    <Histogram info={histograms} joy={true} />
+  </div>
+{/if}
 
 <style>
   h3 {
@@ -481,5 +519,10 @@
       top menu banner: */
     position: relative;
     z-index: -1;
+  }
+  div.hissy {
+    height: 40em;
+    width: 80%;
+    margin: auto;
   }
 </style>
