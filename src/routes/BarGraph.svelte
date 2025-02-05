@@ -1,6 +1,5 @@
 <script>
-  import { tick }  from 'svelte';
-  import Histogram from './Histogram.svelte';
+  import { tick } from "svelte";
   export let numbers;
   export let horizontal = false;
 
@@ -78,20 +77,22 @@
     return population;
   }
 
-  function flatten(data) {
+  function flatten(data, labelPrefix) {
     let results = [];
     for (const pop of data) {
+      let label = `${labelPrefix} ${pop.label}`;
+      pop.fullLabel = label;
       if (typeof pop.data == "number") {
+        let color = getNextColor();
         let obj = {
           shouldPlot: true,
-          label: pop.label,
+          label: label,
           data: pop.histogram,
-          colors: { count: ["black", getNextColor()] },
+          colors: { count: [color, color] },
         };
         results.push(obj);
-      }
-      else {
-        let arr = flatten(pop.data);
+      } else {
+        let arr = flatten(pop.data, label);
         results = [...results, ...arr];
       }
     }
@@ -99,13 +100,13 @@
   }
 
   function findHistograms(population) {
-     if (!(population.data)) return null;
-     for (let i = 0; i < population.data.length; ++i) {
-        if (population.data[i].type == "histogram") {
-          return flatten(population.data[i].data);
-        }
-     }
-     return null;
+    if (!population.data) return null;
+    for (let i = 0; i < population.data.length; ++i) {
+      if (population.data[i].type == "histogram") {
+        return flatten(population.data[i].data, "");
+      }
+    }
+    return null;
   }
 
   $: aData = markup(deepCopy(numbers), 0, 1, 0);
@@ -138,20 +139,18 @@
       if (population.total) {
         return population.total;
       }
-    }
-    else if (Array.isArray(population.data)) {
-     let maxVal = 0.0;
-     if (population.data) {
-      for (let i = 0; i < population.data.length; ++i) {
-        let val = findMaxTotal(population.data[i]);
-        if (val > maxVal) {
-          maxVal = val;
+    } else if (Array.isArray(population.data)) {
+      let maxVal = 0.0;
+      if (population.data) {
+        for (let i = 0; i < population.data.length; ++i) {
+          let val = findMaxTotal(population.data[i]);
+          if (val > maxVal) {
+            maxVal = val;
+          }
         }
       }
-     }
-     return maxVal;
-    }
-    else {
+      return maxVal;
+    } else {
       console.log("TODO", population.data);
       return 0;
     }
@@ -224,7 +223,12 @@
     });
   }
 
-  $: updateSizes(longestLevel_1, longestLevel_2, longestLevel_3, longestLevel_4);
+  $: updateSizes(
+    longestLevel_1,
+    longestLevel_2,
+    longestLevel_3,
+    longestLevel_4
+  );
 
   function getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4) {
     let sum = 0;
@@ -245,20 +249,20 @@
 
   function ciLow(pop) {
     if (horizontal) {
-       let p = pop.ci_low;
-       let prop = p * (pop.total / maxValue);
-       let x = (width - (labelAreaWidth + total_nums_width)) * prop;
-       return barX(pop) + x;
+      let p = pop.ci_low;
+      let prop = p * (pop.total / maxValue);
+      let x = (width - (labelAreaWidth + total_nums_width)) * prop;
+      return barX(pop) + x;
     }
     return 0;
   }
 
   function ciHigh(pop) {
     if (horizontal) {
-       let p = pop.ci_high;
-       let prop = pop.ci_high * (pop.total / maxValue);
-       let x = (width - (labelAreaWidth + total_nums_width)) * prop;
-       return barX(pop) + x;
+      let p = pop.ci_high;
+      let prop = pop.ci_high * (pop.total / maxValue);
+      let x = (width - (labelAreaWidth + total_nums_width)) * prop;
+      return barX(pop) + x;
     }
     return 0;
   }
@@ -274,10 +278,11 @@
   function barNumberX(pop) {
     if (horizontal) {
       let x = barX(pop) + barWidth(pop) - 5;
-      if (x > (ciLow(pop) - 2)) {
+      if (x > ciLow(pop) - 2) {
         x = ciLow(pop) - 2;
       }
-      if (x < (barX(pop) + 50)) {  // TODO: make this more precise
+      if (x < barX(pop) + 50) {
+        // TODO: make this more precise
         x = ciHigh(pop) + 54;
       }
       return x;
@@ -287,7 +292,9 @@
 
   function barWidth(pop) {
     if (horizontal) {
-      return (width - (labelAreaWidth + total_nums_width)) * (pop.data / maxValue);
+      return (
+        (width - (labelAreaWidth + total_nums_width)) * (pop.data / maxValue)
+      );
     } else {
       return width * 0.9 * (pop.maxX - pop.minX);
     }
@@ -326,7 +333,7 @@
       if (pop.level >= 1) {
         total += bb_1.width;
       }
-      
+
       return total;
     } else {
       return (width * (pop.maxX + pop.minX)) / 2;
@@ -389,38 +396,60 @@
       <g transform={translation}>
         <g transform={barTransform}>
           {#if height > 20}
-            <text x={barX(labelAreaWidth) - total_nums_width}
-                 y="0" > total n </text>
+            <text x={barX(labelAreaWidth) - total_nums_width} y="0">
+              total n
+            </text>
             {#each populationsAtLevel(aData, levels) as pop}
-              <rect
-                x={barX(pop, horizontal, labelAreaWidth)}
-                width={barWidth(pop, horizontal, labelAreaWidth)}
-                y={barY(pop, horizontal)}
-                height={barHeight(pop, horizontal)}
-                fill={pop.color}
-              />
-              {#if pop.ci_low && pop.ci_high}
-                <line 
-                  x1 = {ciLow(pop, labelAreaWidth)}
-                  x2 = {ciHigh(pop, labelAreaWidth)}
-                  y1 = {barY(pop, horizontal) + 0.5 * barHeight(pop, horizontal) }
-                  y2 = {barY(pop, horizontal) + 0.5 * barHeight(pop, horizontal) }
-                  stroke="black"
+              {#if pop.type == "counts"}
+                <rect
+                  x={barX(pop, horizontal, labelAreaWidth)}
+                  width={barWidth(pop, horizontal, labelAreaWidth)}
+                  y={barY(pop, horizontal)}
+                  height={barHeight(pop, horizontal)}
+                  fill={pop.color}
+                />
+                {#if pop.ci_low && pop.ci_high}
+                  <line
+                    x1={ciLow(pop, labelAreaWidth)}
+                    x2={ciHigh(pop, labelAreaWidth)}
+                    y1={barY(pop, horizontal) +
+                      0.5 * barHeight(pop, horizontal)}
+                    y2={barY(pop, horizontal) +
+                      0.5 * barHeight(pop, horizontal)}
+                    stroke="black"
                   />
-              {/if}
-              {#if pop.data > 0 && pop.ci_low !== undefined }
-                <text x={barNumberX(pop, labelAreaWidth) }
-                      y = {barY(pop, horizontal) + barHeight(pop, horizontal)/2 + 5}
-                      text-anchor="end"
-                      >{(pop.data).toLocaleString()}</text>
+                {/if}
+                {#if pop.data > 0 && pop.ci_low !== undefined}
+                  <text
+                    x={barNumberX(pop, labelAreaWidth)}
+                    y={barY(pop, horizontal) +
+                      barHeight(pop, horizontal) / 2 +
+                      5}
+                    text-anchor="end">{pop.data.toLocaleString()}</text
+                  >
+                {/if}
+              {:else if pop.type == "histogram"}
+                {#each pop.histogram as bar}
+                  <line
+                    x1={barX(pop, horizontal, labelAreaWidth) +
+                      100 * bar["viralLoadLog"]}
+                    x2={barX(pop, horizontal, labelAreaWidth) +
+                      100 * bar["viralLoadLog"]}
+                    y1={barY(pop) + 30}
+                    y2={barY(pop) + 30 - 0.001 * bar["count"]}
+                    stroke={pop.color}
+                    stroke-width="4"
+                  />
+                {/each}
               {/if}
               {#if pop.total}
-                <text x={barX(pop, horizontal, labelAreaWidth) - total_nums_width }
-                   y = {barY(pop, horizontal) + barHeight(pop, horizontal)/2 + 5}
-                 >
-                 {(pop.total).toLocaleString()}
-               </text>
-             {/if}
+                <text
+                  x={barX(pop, horizontal, labelAreaWidth) - total_nums_width}
+                  y={barY(pop, horizontal) + barHeight(pop, horizontal) / 2 + 5}
+                >
+                  {pop.total.toLocaleString()}
+                </text>
+              {/if}
             {/each}
           {/if}
         </g>
@@ -497,17 +526,12 @@
           >M {longestLevel_4}
         </text>
         <text x="-1000" y="-1000" bind:this={strSizer_total}>
-              {maxTotal.toLocaleString()}
+          {maxTotal.toLocaleString()}
         </text>
       </g>
     </svg>
   {/if}
 </div>
-{#if histograms}
-  <div class="hissy" >
-    <Histogram info={histograms} joy={true} />
-  </div>
-{/if}
 
 <style>
   h3 {
@@ -519,10 +543,5 @@
       top menu banner: */
     position: relative;
     z-index: -1;
-  }
-  div.hissy {
-    height: 40em;
-    width: 80%;
-    margin: auto;
   }
 </style>

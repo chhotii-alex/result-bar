@@ -136,7 +136,6 @@
   });
 
   let horizontal = true;
-
 </script>
 
 <LabMenuBanner />
