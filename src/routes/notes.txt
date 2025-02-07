@@ -1,0 +1,61 @@
+
+d3 stacks
+
+The documentation at https://using-d3js.com/05_06_stacks.html is a bit confusing/wrong; the structure of stackedSeries shown doesn't quite track.
+
+Let's say we have this:
+
+var fruitSalesData = [
+  {month: new Date(2018, 1, 1), apples: 10, bananas: 20, oranges: 15},
+  {month: new Date(2018, 2, 1), apples: 15, bananas: 15, oranges: 15},
+  {month: new Date(2018, 3, 1), apples: 20, bananas: 25, oranges: 15}
+];
+
+Each element of the array is the data for a particular x value.
+fruitSalesData[0]: fruit sales for x = 1/1/18
+fruitSalesData[1]: fruit sales for x = 2/1/18
+fruitSalesData[2]: fruit sales for x = 3/1/18
+Each element is an Object. Properies keys in these objects correspond to data series that we want to stack. Here,
+we want to stack the data series "apples", "bananas", and "oranges". We also have a property in each of these objects specifying the x value.
+
+Assuming you've done this import:
+  import {stack} from "d3";
+
+Create a stack generator thusly:
+
+var stackGen = stack()
+  .keys(["apples", "bananas", "oranges"]);
+
+Then we can transform the data into a form suitable for stacking:
+
+var stackedSeries = stackGen(fruitSalesData); 
+
+JSON-stringifying an array represents only the array indices from 0 to length-1; named properties are ignored. If we JSON-stringify stackedSeries we see
+(edited):
+
+[
+  [[0,10], [0,15], [0,20]],  //apples 
+  [[10,30],[15,30],[20,45]], //bananas
+  [[30,45],[30,45],[45,60]], //oranges
+]
+
+Each member of this array is a layer. The layer is represented as an array of (in this case) months. The layer also has a named property: key.
+
+Each fruits' month is an array containing two values, y-bottom and y-top; it also has a property named 'data' which is that month's object from the original
+fruitSalesData data structure. Thus we can drill down to get the x-value.
+
+This Svelte code shows drilling down into stackedSeries:
+
+{#each stackedSeries as layer}
+  Here is a fruit:
+  {layer.key}
+  <br/>
+  {#each layer as month}
+    For the month: {month.data.month}
+    {layer.key} extends from {month[0]} to {month[1]} vertically
+    <p/>
+  {/each}
+  <hr/>
+{/each}
+
+

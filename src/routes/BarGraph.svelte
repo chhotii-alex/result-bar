@@ -35,20 +35,11 @@
     return a;
   }
 
-  const margin = { top: 20, right: 100, bottom: 20, left: 100 };
-
   let clientWidth;
   let clientHeight;
 
-  $: width = clientWidth - (margin.left + margin.right);
-  $: height = clientHeight - (margin.top + margin.bottom);
-
-  $: bounds = {
-    top: margin.top,
-    left: margin.left,
-    bottom: margin.top + height,
-    right: margin.left + width,
-  };
+  $: width = clientWidth;
+  $: height = clientHeight;
 
   function deepCopy(x) {
     let s = JSON.stringify(x);
@@ -348,16 +339,6 @@
     }
   }
 
-  function getTranslation(theBounds, isHorizontal) {
-    if (isHorizontal) {
-      return `translate(${margin.left}, ${margin.bottom})`;
-    } else {
-      return `translate(${margin.left}, ${theBounds.bottom})`;
-    }
-  }
-
-  $: translation = getTranslation(bounds, horizontal);
-
   function getBarTransform(isHorizontal) {
     if (isHorizontal) {
       return "scale(1, 1)";
@@ -377,7 +358,6 @@
   }
 
   $: textAnchor = getTextAnchor(horizontal);
-
 </script>
 
 <h3>
@@ -393,147 +373,147 @@
 >
   {#if clientWidth && numbers}
     <svg width="100%" height="60vh">
-      <g transform={translation}>
-        <g transform={barTransform}>
-          {#if height > 20}
-            <text x={barX(labelAreaWidth) - total_nums_width} y="0">
-              total n
-            </text>
-            {#each populationsAtLevel(aData, levels) as pop}
-              {#if pop.type == "counts"}
-                <rect
-                  x={barX(pop, horizontal, labelAreaWidth)}
-                  width={barWidth(pop, horizontal, labelAreaWidth)}
-                  y={barY(pop, horizontal)}
-                  height={barHeight(pop, horizontal)}
-                  fill={pop.color}
+      <g transform={barTransform}>
+        {#if height > 20}
+          <text x={barX(labelAreaWidth) - total_nums_width} y="0">
+            total n
+          </text>
+          {#each populationsAtLevel(aData, levels) as pop}
+            {#if pop.type == "counts"}
+              <rect
+                x={barX(pop, horizontal, labelAreaWidth)}
+                width={barWidth(pop, horizontal, labelAreaWidth)}
+                y={barY(pop, horizontal)}
+                height={barHeight(pop, horizontal)}
+                fill={pop.color}
+              />
+              {#if pop.ci_low && pop.ci_high}
+                <line
+                  x1={ciLow(pop, labelAreaWidth)}
+                  x2={ciHigh(pop, labelAreaWidth)}
+                  y1={barY(pop, horizontal) + 0.5 * barHeight(pop, horizontal)}
+                  y2={barY(pop, horizontal) + 0.5 * barHeight(pop, horizontal)}
+                  stroke="black"
                 />
-                {#if pop.ci_low && pop.ci_high}
-                  <line
-                    x1={ciLow(pop, labelAreaWidth)}
-                    x2={ciHigh(pop, labelAreaWidth)}
-                    y1={barY(pop, horizontal) +
-                      0.5 * barHeight(pop, horizontal)}
-                    y2={barY(pop, horizontal) +
-                      0.5 * barHeight(pop, horizontal)}
-                    stroke="black"
-                  />
-                {/if}
-                {#if pop.data > 0 && pop.ci_low !== undefined}
-                  <text
-                    x={barNumberX(pop, labelAreaWidth)}
-                    y={barY(pop, horizontal) +
-                      barHeight(pop, horizontal) / 2 +
-                      5}
-                    text-anchor="end">{pop.data.toLocaleString()}</text
-                  >
-                {/if}
-              {:else if pop.type == "histogram"}
-                {#each pop.histogram as bar}
-                  <line
-                    x1={barX(pop, horizontal, labelAreaWidth) +
-                      100 * bar["viralLoadLog"]}
-                    x2={barX(pop, horizontal, labelAreaWidth) +
-                      100 * bar["viralLoadLog"]}
-                    y1={barY(pop) + 30}
-                    y2={barY(pop) + 30 - 0.001 * bar["count"]}
-                    stroke={pop.color}
-                    stroke-width="4"
-                  />
-                {/each}
               {/if}
-              {#if pop.total}
+              {#if pop.data > 0 && pop.ci_low !== undefined}
                 <text
-                  x={barX(pop, horizontal, labelAreaWidth) - total_nums_width}
+                  x={barNumberX(pop, labelAreaWidth)}
                   y={barY(pop, horizontal) + barHeight(pop, horizontal) / 2 + 5}
+                  text-anchor="end">{pop.data.toLocaleString()}</text
                 >
-                  {pop.total.toLocaleString()}
-                </text>
               {/if}
-            {/each}
-          {/if}
-        </g>
-        {#each findPopulations(aData) as pop}
-          {#if pop.level < levels}
-            {#if horizontal && pop.level > 0}}
-              <line
-                x1={labelX(pop, labelAreaWidth) + 4}
-                x2={labelX(pop, labelAreaWidth) + 4}
-                y1={height * pop.minX + 14}
-                y2={height * pop.maxX - 24}
-                stroke="black"
-              />
-              <line
-                x1={labelX(pop, labelAreaWidth) + 4}
-                x2={labelX(pop, labelAreaWidth) + 14}
-                y1={height * pop.minX + 14}
-                y2={height * pop.minX + 14}
-                stroke="black"
-              />
-              <line
-                x1={labelX(pop, labelAreaWidth) + 4}
-                x2={labelX(pop, labelAreaWidth) + 14}
-                y1={height * pop.maxX - 24}
-                y2={height * pop.maxX - 24}
-                stroke="black"
-              />
-            {:else if !horizontal}
-              <line
-                x1={width * pop.minX + 14}
-                x2={width * pop.maxX - 28}
-                y1={20 * -pop.level}
-                y2={20 * -pop.level}
-                stroke="black"
-              />
-              <line
-                x1={width * pop.minX + 14}
-                x2={width * pop.minX + 14}
-                y1={20 * -pop.level}
-                y2={20 * -pop.level - 5}
-                stroke="black"
-              />
-              <line
-                x1={width * pop.maxX - 28}
-                x2={width * pop.maxX - 28}
-                y1={20 * -pop.level}
-                y2={20 * -pop.level - 5}
-                stroke="black"
-              />
+            {:else if pop.type == "histogram"}
+              {#each pop.histogram as bar}
+                <line
+                  x1={barX(pop, horizontal, labelAreaWidth) +
+                    100 * bar["viralLoadLog"]}
+                  x2={barX(pop, horizontal, labelAreaWidth) +
+                    100 * bar["viralLoadLog"]}
+                  y1={barY(pop) + 30}
+                  y2={barY(pop) + 30 - 0.001 * bar["count"]}
+                  stroke={pop.color}
+                  stroke-width="4"
+                />
+              {/each}
             {/if}
-          {/if}
-          {#if !horizontal || pop.level > 0}
-            <text
-              x={labelX(pop, horizontal, labelAreaWidth)}
-              y={labelY(pop, clientHeight, horizontal, labelAreaWidth)}
-              text-anchor={textAnchor}
-            >
-              {pop.label}
-            </text>
-          {/if}
-        {/each}
-
-        <!-- Discreetly find out the text size of our labels -->
-        <text x="-1000" y="-1000" bind:this={strSizer_1}
-          >M {longestLevel_1}
-        </text>
-        <text x="-1000" y="-1000" bind:this={strSizer_2}
-          >M {longestLevel_2}
-        </text>
-        <text x="-1000" y="-1000" bind:this={strSizer_3}
-          >M {longestLevel_3}
-        </text>
-        <text x="-1000" y="-1000" bind:this={strSizer_4}
-          >M {longestLevel_4}
-        </text>
-        <text x="-1000" y="-1000" bind:this={strSizer_total}>
-          {maxTotal.toLocaleString()}
-        </text>
+            {#if pop.total}
+              <text
+                x={barX(pop, horizontal, labelAreaWidth) - total_nums_width}
+                y={barY(pop, horizontal) + barHeight(pop, horizontal) / 2 + 5}
+              >
+                {pop.total.toLocaleString()}
+              </text>
+            {/if}
+          {/each}
+        {/if}
       </g>
+      {#each findPopulations(aData) as pop}
+        {#if pop.level < levels}
+          {#if horizontal && pop.level > 0}}
+            <line
+              x1={labelX(pop, labelAreaWidth) + 4}
+              x2={labelX(pop, labelAreaWidth) + 4}
+              y1={height * pop.minX + 14}
+              y2={height * pop.maxX - 24}
+              stroke="black"
+            />
+            <line
+              x1={labelX(pop, labelAreaWidth) + 4}
+              x2={labelX(pop, labelAreaWidth) + 14}
+              y1={height * pop.minX + 14}
+              y2={height * pop.minX + 14}
+              stroke="black"
+            />
+            <line
+              x1={labelX(pop, labelAreaWidth) + 4}
+              x2={labelX(pop, labelAreaWidth) + 14}
+              y1={height * pop.maxX - 24}
+              y2={height * pop.maxX - 24}
+              stroke="black"
+            />
+          {:else if !horizontal}
+            <line
+              x1={width * pop.minX + 14}
+              x2={width * pop.maxX - 28}
+              y1={20 * -pop.level}
+              y2={20 * -pop.level}
+              stroke="black"
+            />
+            <line
+              x1={width * pop.minX + 14}
+              x2={width * pop.minX + 14}
+              y1={20 * -pop.level}
+              y2={20 * -pop.level - 5}
+              stroke="black"
+            />
+            <line
+              x1={width * pop.maxX - 28}
+              x2={width * pop.maxX - 28}
+              y1={20 * -pop.level}
+              y2={20 * -pop.level - 5}
+              stroke="black"
+            />
+          {/if}
+        {/if}
+        {#if !horizontal || pop.level > 0}
+          <text
+            x={labelX(pop, horizontal, labelAreaWidth)}
+            y={labelY(pop, clientHeight, horizontal, labelAreaWidth)}
+            text-anchor={textAnchor}
+          >
+            {pop.label}
+          </text>
+        {/if}
+      {/each}
+
+      <!-- Discreetly find out the text size of our labels -->
+      <text x="-1000" y="-1000" bind:this={strSizer_1}
+        >M {longestLevel_1}
+      </text>
+      <text x="-1000" y="-1000" bind:this={strSizer_2}
+        >M {longestLevel_2}
+      </text>
+      <text x="-1000" y="-1000" bind:this={strSizer_3}
+        >M {longestLevel_3}
+      </text>
+      <text x="-1000" y="-1000" bind:this={strSizer_4}
+        >M {longestLevel_4}
+      </text>
+      <text x="-1000" y="-1000" bind:this={strSizer_total}>
+        {maxTotal.toLocaleString()}
+      </text>
     </svg>
   {/if}
 </div>
 
 <style>
+  div.sizer {
+    margin-top: 20px;
+    margin-right: 100px;
+    margin-bottom: 20px;
+    margin-left: 100px;
+  }
   h3 {
     margin: auto;
     text-align: center;
