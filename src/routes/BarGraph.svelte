@@ -1,5 +1,6 @@
 <script>
   import { tick } from "svelte";
+  import { scaleLinear } from "d3-scale";
   export let numbers;
   export let horizontal = false;
 
@@ -35,11 +36,8 @@
     return a;
   }
 
-  let clientWidth;
-  let clientHeight;
-
-  $: width = clientWidth;
-  $: height = clientHeight;
+  let width;
+  let height;
 
   function deepCopy(x) {
     let s = JSON.stringify(x);
@@ -258,6 +256,10 @@
     return 0;
   }
 
+  $: histogramX = scaleLinear()
+    .domain([0, 10])
+    .range([labelAreaWidth + total_nums_width, width]);
+
   function barX(pop) {
     if (horizontal) {
       return labelAreaWidth + total_nums_width;
@@ -291,9 +293,11 @@
     }
   }
 
+  $: popY = scaleLinear().domain([0, 1]).range([0, height]);
+
   function barY(pop) {
     if (horizontal) {
-      return height * pop.minX + 0.05 * (pop.maxX - pop.minX);
+      return popY(pop.minX + 0.05 * (pop.maxX - pop.minX));
     } else {
       return 20 * (levels + 1);
     }
@@ -308,7 +312,7 @@
   }
 
   function labelX(pop) {
-    if (!clientWidth) return 0;
+    if (!width) return 0;
     if (bb_4 === undefined) return 0;
     if (horizontal) {
       let total = 0; //-(bb_1.width);
@@ -366,12 +370,12 @@
 
 <div
   class="sizer"
-  bind:clientWidth
-  bind:clientHeight
+  bind:clientWidth={width}
+  bind:clientHeight={height}
   height="60vh"
   width="80vw"
 >
-  {#if clientWidth && numbers}
+  {#if width && numbers}
     <svg width="100%" height="60vh">
       <g transform={barTransform}>
         {#if height > 20}
@@ -406,12 +410,10 @@
             {:else if pop.type == "histogram"}
               {#each pop.histogram as bar}
                 <line
-                  x1={barX(pop, horizontal, labelAreaWidth) +
-                    100 * bar["viralLoadLog"]}
-                  x2={barX(pop, horizontal, labelAreaWidth) +
-                    100 * bar["viralLoadLog"]}
-                  y1={barY(pop) + 30}
-                  y2={barY(pop) + 30 - 0.001 * bar["count"]}
+                  x1={histogramX(bar["viralLoadLog"])}
+                  x2={histogramX(bar["viralLoadLog"])}
+                  y1={popY(pop.maxX)}
+                  y2={popY(pop.maxX) - 0.004 * bar["count"]}
                   stroke={pop.color}
                   stroke-width="4"
                 />
@@ -479,7 +481,7 @@
         {#if !horizontal || pop.level > 0}
           <text
             x={labelX(pop, horizontal, labelAreaWidth)}
-            y={labelY(pop, clientHeight, horizontal, labelAreaWidth)}
+            y={labelY(pop, height, horizontal, labelAreaWidth)}
             text-anchor={textAnchor}
           >
             {pop.label}
@@ -523,5 +525,6 @@
       top menu banner: */
     position: relative;
     z-index: -1;
+    overflow: visible;
   }
 </style>
