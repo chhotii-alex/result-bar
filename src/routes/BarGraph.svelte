@@ -2,7 +2,6 @@
   import { tick } from "svelte";
   import { scaleLinear } from "d3-scale";
   export let numbers;
-  export let horizontal = false;
 
   let colorNames = [
     "Crimson",
@@ -237,23 +236,17 @@
   }
 
   function ciLow(pop) {
-    if (horizontal) {
-      let p = pop.ci_low;
-      let prop = p * (pop.total / maxValue);
-      let x = (width - (labelAreaWidth + total_nums_width)) * prop;
-      return barX(pop) + x;
-    }
-    return 0;
+    let p = pop.ci_low;
+    let prop = p * (pop.total / maxValue);
+    let x = (width - (labelAreaWidth + total_nums_width)) * prop;
+    return barX(pop) + x;
   }
 
   function ciHigh(pop) {
-    if (horizontal) {
-      let p = pop.ci_high;
-      let prop = pop.ci_high * (pop.total / maxValue);
-      let x = (width - (labelAreaWidth + total_nums_width)) * prop;
-      return barX(pop) + x;
-    }
-    return 0;
+    let p = pop.ci_high;
+    let prop = pop.ci_high * (pop.total / maxValue);
+    let x = (width - (labelAreaWidth + total_nums_width)) * prop;
+    return barX(pop) + x;
   }
 
   $: histogramX = scaleLinear()
@@ -261,107 +254,60 @@
     .range([labelAreaWidth + total_nums_width, width]);
 
   function barX(pop) {
-    if (horizontal) {
-      return labelAreaWidth + total_nums_width;
-    } else {
-      return width * pop.minX + 0.05 * (pop.maxX - pop.minX);
-    }
+    return labelAreaWidth + total_nums_width;
   }
 
   function barNumberX(pop) {
-    if (horizontal) {
-      let x = barX(pop) + barWidth(pop) - 5;
-      if (x > ciLow(pop) - 2) {
-        x = ciLow(pop) - 2;
-      }
-      if (x < barX(pop) + 50) {
-        // TODO: make this more precise
-        x = ciHigh(pop) + 54;
-      }
-      return x;
+    let x = barX(pop) + barWidth(pop) - 5;
+    if (x > ciLow(pop) - 2) {
+      x = ciLow(pop) - 2;
     }
-    return 0; // not worked out for vertical case
+    if (x < barX(pop) + 50) {
+      // TODO: make this more precise
+      x = ciHigh(pop) + 54;
+    }
+    return x;
   }
 
   function barWidth(pop) {
-    if (horizontal) {
-      return (
-        (width - (labelAreaWidth + total_nums_width)) * (pop.data / maxValue)
-      );
-    } else {
-      return width * 0.9 * (pop.maxX - pop.minX);
-    }
+    return (
+      (width - (labelAreaWidth + total_nums_width)) * (pop.data / maxValue)
+    );
   }
 
   $: popY = scaleLinear().domain([0, 1]).range([0, height]);
 
   function barY(pop) {
-    if (horizontal) {
-      return popY(pop.minX + 0.05 * (pop.maxX - pop.minX));
-    } else {
-      return 20 * (levels + 1);
-    }
+    return popY(pop.minX + 0.05 * (pop.maxX - pop.minX));
   }
 
   function barHeight(pop) {
-    if (horizontal) {
-      return height * 0.9 * (pop.maxX - pop.minX);
-    } else {
-      return ((height - 20 * (levels + 1)) * pop.data) / maxValue;
-    }
+    return height * 0.9 * (pop.maxX - pop.minX);
   }
 
   function labelX(pop) {
     if (!width) return 0;
     if (bb_4 === undefined) return 0;
-    if (horizontal) {
-      let total = 0; //-(bb_1.width);
-      if (pop.level >= 4) {
-        total += bb_4.width;
-      }
-      if (pop.level >= 3) {
-        total += bb_3.width;
-      }
-      if (pop.level >= 2) {
-        total += bb_2.width;
-      }
-      if (pop.level >= 1) {
-        total += bb_1.width;
-      }
-
-      return total;
-    } else {
-      return (width * (pop.maxX + pop.minX)) / 2;
+    let total = 0; //-(bb_1.width);
+    if (pop.level >= 4) {
+      total += bb_4.width;
     }
+    if (pop.level >= 3) {
+      total += bb_3.width;
+    }
+    if (pop.level >= 2) {
+      total += bb_2.width;
+    }
+    if (pop.level >= 1) {
+      total += bb_1.width;
+    }
+
+    return total;
   }
 
   function labelY(pop) {
-    if (horizontal) {
-      return height * pop.minX + 0.5 * height * (pop.maxX - pop.minX);
-    } else {
-      return 20 * -pop.level - 2;
-    }
+    return height * pop.minX + 0.5 * height * (pop.maxX - pop.minX);
   }
-
-  function getBarTransform(isHorizontal) {
-    if (isHorizontal) {
-      return "scale(1, 1)";
-    } else {
-      return "scale(1, -1)";
-    }
-  }
-
-  $: barTransform = getBarTransform(horizontal);
-
-  function getTextAnchor(isHorizontal) {
-    if (isHorizontal) {
-      return "end";
-    } else {
-      return "middle";
-    }
-  }
-
-  $: textAnchor = getTextAnchor(horizontal);
 </script>
 
 <h3>
@@ -377,7 +323,7 @@
 >
   {#if width && numbers}
     <svg width="100%" height="60vh">
-      <g transform={barTransform}>
+      <g>
         {#if height > 20}
           <text x={barX(labelAreaWidth) - total_nums_width} y="0">
             total n
@@ -385,25 +331,25 @@
           {#each populationsAtLevel(aData, levels) as pop}
             {#if pop.type == "counts"}
               <rect
-                x={barX(pop, horizontal, labelAreaWidth)}
-                width={barWidth(pop, horizontal, labelAreaWidth)}
-                y={barY(pop, horizontal)}
-                height={barHeight(pop, horizontal)}
+                x={barX(pop, labelAreaWidth)}
+                width={barWidth(pop, labelAreaWidth)}
+                y={barY(pop)}
+                height={barHeight(pop)}
                 fill={pop.color}
               />
               {#if pop.ci_low && pop.ci_high}
                 <line
                   x1={ciLow(pop, labelAreaWidth)}
                   x2={ciHigh(pop, labelAreaWidth)}
-                  y1={barY(pop, horizontal) + 0.5 * barHeight(pop, horizontal)}
-                  y2={barY(pop, horizontal) + 0.5 * barHeight(pop, horizontal)}
+                  y1={barY(pop) + 0.5 * barHeight(pop)}
+                  y2={barY(pop) + 0.5 * barHeight(pop)}
                   stroke="black"
                 />
               {/if}
               {#if pop.data > 0 && pop.ci_low !== undefined}
                 <text
                   x={barNumberX(pop, labelAreaWidth)}
-                  y={barY(pop, horizontal) + barHeight(pop, horizontal) / 2 + 5}
+                  y={barY(pop) + barHeight(pop) / 2 + 5}
                   text-anchor="end">{pop.data.toLocaleString()}</text
                 >
               {/if}
@@ -421,8 +367,8 @@
             {/if}
             {#if pop.total}
               <text
-                x={barX(pop, horizontal, labelAreaWidth) - total_nums_width}
-                y={barY(pop, horizontal) + barHeight(pop, horizontal) / 2 + 5}
+                x={barX(pop, labelAreaWidth) - total_nums_width}
+                y={barY(pop) + barHeight(pop) / 2 + 5}
               >
                 {pop.total.toLocaleString()}
               </text>
@@ -432,7 +378,7 @@
       </g>
       {#each findPopulations(aData) as pop}
         {#if pop.level < levels}
-          {#if horizontal && pop.level > 0}}
+          {#if pop.level > 0}}
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 4}
@@ -454,35 +400,13 @@
               y2={height * pop.maxX - 24}
               stroke="black"
             />
-          {:else if !horizontal}
-            <line
-              x1={width * pop.minX + 14}
-              x2={width * pop.maxX - 28}
-              y1={20 * -pop.level}
-              y2={20 * -pop.level}
-              stroke="black"
-            />
-            <line
-              x1={width * pop.minX + 14}
-              x2={width * pop.minX + 14}
-              y1={20 * -pop.level}
-              y2={20 * -pop.level - 5}
-              stroke="black"
-            />
-            <line
-              x1={width * pop.maxX - 28}
-              x2={width * pop.maxX - 28}
-              y1={20 * -pop.level}
-              y2={20 * -pop.level - 5}
-              stroke="black"
-            />
           {/if}
         {/if}
-        {#if !horizontal || pop.level > 0}
+        {#if pop.level > 0}
           <text
-            x={labelX(pop, horizontal, labelAreaWidth)}
-            y={labelY(pop, height, horizontal, labelAreaWidth)}
-            text-anchor={textAnchor}
+            x={labelX(pop, labelAreaWidth)}
+            y={labelY(pop, height, labelAreaWidth)}
+            text-anchor="end"
           >
             {pop.label}
           </text>

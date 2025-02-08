@@ -134,8 +134,6 @@
   let numberFormatter = new Intl.NumberFormat("en-US", {
     maximumSignificantDigits: 4,
   });
-
-  let horizontal = true;
 </script>
 
 <LabMenuBanner />
@@ -174,7 +172,7 @@
 
   {#if data}
     <div class="bar">
-      <BarGraph numbers={data} {horizontal} />
+      <BarGraph numbers={data} />
     </div>
   {/if}
 {/if}
