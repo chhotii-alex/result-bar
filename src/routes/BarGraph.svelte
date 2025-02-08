@@ -44,19 +44,19 @@
     return theCopy;
   }
 
-  function markup(population, minX, maxX, level) {
-    population.minX = minX;
-    population.maxX = maxX;
+  function markup(population, minDim, maxDim, level) {
+    population.minDim = minDim;
+    population.maxDim = maxDim;
     population.level = level;
     population.color = getNextColor();
     if (population.data) {
       if (typeof population.data != "number") {
-        let childWidth = (maxX - minX) / population.data.length;
+        let childWidth = (maxDim - minDim) / population.data.length;
         for (let i = 0; i < population.data.length; ++i) {
           markup(
             population.data[i],
-            minX + i * childWidth,
-            minX + (i + 1) * childWidth,
+            minDim + i * childWidth,
+            minDim + (i + 1) * childWidth,
             level + 1
           );
         }
@@ -65,41 +65,7 @@
     return population;
   }
 
-  function flatten(data, labelPrefix) {
-    let results = [];
-    for (const pop of data) {
-      let label = `${labelPrefix} ${pop.label}`;
-      pop.fullLabel = label;
-      if (typeof pop.data == "number") {
-        let color = getNextColor();
-        let obj = {
-          shouldPlot: true,
-          label: label,
-          data: pop.histogram,
-          colors: { count: [color, color] },
-        };
-        results.push(obj);
-      } else {
-        let arr = flatten(pop.data, label);
-        results = [...results, ...arr];
-      }
-    }
-    return results;
-  }
-
-  function findHistograms(population) {
-    if (!population.data) return null;
-    for (let i = 0; i < population.data.length; ++i) {
-      if (population.data[i].type == "histogram") {
-        return flatten(population.data[i].data, "");
-      }
-    }
-    return null;
-  }
-
   $: aData = markup(deepCopy(numbers), 0, 1, 0);
-
-  $: histograms = findHistograms(aData);
 
   $: maxValue = findMaxValue(aData);
   $: maxTotal = findMaxTotal(aData);
@@ -144,7 +110,7 @@
     }
   }
 
-  function findLevels(population, minX, maxX) {
+  function findLevels(population, minDim, maxDim) {
     if (!population) return 0;
     if (typeof population.data == "number") return 0;
     let maxDepth = 0;
@@ -278,11 +244,11 @@
   $: popY = scaleLinear().domain([0, 1]).range([0, height]);
 
   function barY(pop) {
-    return popY(pop.minX + 0.05 * (pop.maxX - pop.minX));
+    return popY(pop.minDim + 0.05 * (pop.maxDim - pop.minDim));
   }
 
   function barHeight(pop) {
-    return height * 0.9 * (pop.maxX - pop.minX);
+    return height * 0.9 * (pop.maxDim - pop.minDim);
   }
 
   function labelX(pop) {
@@ -306,7 +272,7 @@
   }
 
   function labelY(pop) {
-    return height * pop.minX + 0.5 * height * (pop.maxX - pop.minX);
+    return height * pop.minDim + 0.5 * height * (pop.maxDim - pop.minDim);
   }
 </script>
 
@@ -358,8 +324,8 @@
                 <line
                   x1={histogramX(bar["viralLoadLog"])}
                   x2={histogramX(bar["viralLoadLog"])}
-                  y1={popY(pop.maxX)}
-                  y2={popY(pop.maxX) - 0.004 * bar["count"]}
+                  y1={popY(pop.maxDim)}
+                  y2={popY(pop.maxDim) - 0.004 * bar["count"]}
                   stroke={pop.color}
                   stroke-width="4"
                 />
@@ -382,22 +348,22 @@
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 4}
-              y1={height * pop.minX + 14}
-              y2={height * pop.maxX - 24}
+              y1={height * pop.minDim + 14}
+              y2={height * pop.maxDim - 24}
               stroke="black"
             />
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 14}
-              y1={height * pop.minX + 14}
-              y2={height * pop.minX + 14}
+              y1={height * pop.minDim + 14}
+              y2={height * pop.minDim + 14}
               stroke="black"
             />
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 14}
-              y1={height * pop.maxX - 24}
-              y2={height * pop.maxX - 24}
+              y1={height * pop.maxDim - 24}
+              y2={height * pop.maxDim - 24}
               stroke="black"
             />
           {/if}
