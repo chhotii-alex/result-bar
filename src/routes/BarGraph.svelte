@@ -199,47 +199,15 @@
     return sum;
   }
 
-  function ciLow(pop) {
-    let p = pop.ci_low;
-    let prop = p * (pop.total / maxValue);
-    let x = (width - (labelAreaWidth + total_nums_width)) * prop;
-    return barX(pop) + x;
-  }
-
-  function ciHigh(pop) {
-    let p = pop.ci_high;
-    let prop = pop.ci_high * (pop.total / maxValue);
-    let x = (width - (labelAreaWidth + total_nums_width)) * prop;
-    return barX(pop) + x;
-  }
-
   $: histogramX = scaleLinear()
     .domain([0, 10])
     .range([labelAreaWidth + total_nums_width, width]);
 
   $: histogramY = scaleLinear().domain([0, 15000]).range([0.95, 0.05]);
 
-  function barX(pop) {
-    return labelAreaWidth + total_nums_width;
-  }
-
-  function barNumberX(pop) {
-    let x = barX(pop) + barWidth(pop) - 5;
-    if (x > ciLow(pop) - 2) {
-      x = ciLow(pop) - 2;
-    }
-    if (x < barX(pop) + 50) {
-      // TODO: make this more precise
-      x = ciHigh(pop) + 54;
-    }
-    return x;
-  }
-
-  function barWidth(pop) {
-    return (
-      (width - (labelAreaWidth + total_nums_width)) * (pop.data / maxValue)
-    );
-  }
+  $: barX = scaleLinear()
+    .domain([0, maxValue])
+    .range([labelAreaWidth + total_nums_width, width]);
 
   $: popY = scaleLinear().domain([0, 1]).range([0, height]);
 
@@ -279,22 +247,20 @@
     <svg width="100%" height="60vh">
       <g>
         {#if height > 20}
-          <text x={barX(labelAreaWidth) - total_nums_width} y="0">
-            total n
-          </text>
+          <text x={barX(0) - total_nums_width} y="0"> total n </text>
           {#each populationsAtLevel(aData, levels) as pop}
             {#if pop.type == "counts"}
               <rect
-                x={barX(pop, labelAreaWidth)}
-                width={barWidth(pop, labelAreaWidth)}
+                x={barX(0)}
+                width={barX(pop.data) - barX(0)}
                 y={popY(pop.yPlace(0.05))}
                 height={popY(pop.yPlace(0.95)) - popY(pop.yPlace(0.05))}
                 fill={pop.color}
               />
               {#if pop.ci_low && pop.ci_high}
                 <line
-                  x1={ciLow(pop, labelAreaWidth)}
-                  x2={ciHigh(pop, labelAreaWidth)}
+                  x1={barX(pop.ci_low * pop.total)}
+                  x2={barX(pop.ci_high * pop.total)}
                   y1={popY(pop.yPlace(0.5))}
                   y2={popY(pop.yPlace(0.5))}
                   stroke="black"
@@ -302,7 +268,13 @@
               {/if}
               {#if pop.data > 0 && pop.ci_low !== undefined}
                 <text
-                  x={barNumberX(pop, labelAreaWidth)}
+                  x={Math.max(
+                    Math.min(
+                      barX(pop.data) - 5,
+                      barX(pop.ci_low * pop.total) - 2
+                    ),
+                    barX(0) + 50
+                  )}
                   y={popY(pop.yPlace(0.5)) + 5}
                   text-anchor="end">{pop.data.toLocaleString()}</text
                 >
@@ -321,7 +293,7 @@
             {/if}
             {#if pop.total}
               <text
-                x={barX(pop, labelAreaWidth) - total_nums_width}
+                x={barX(0) - total_nums_width}
                 y={popY(pop.yPlace(0.5)) + 5}
               >
                 {pop.total.toLocaleString()}
