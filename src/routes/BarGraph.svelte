@@ -47,6 +47,7 @@
   function markup(population, minDim, maxDim, level) {
     population.minDim = minDim;
     population.maxDim = maxDim;
+    population.yPlace = scaleLinear().domain([0, 1]).range([minDim, maxDim]);
     population.level = level;
     population.color = getNextColor();
     if (population.data) {
@@ -240,12 +241,16 @@
 
   $: popY = scaleLinear().domain([0, 1]).range([0, height]);
 
-  function barY(pop) {
-    return popY(pop.minDim + 0.05 * (pop.maxDim - pop.minDim));
+  function barBottom(pop) {
+    return popY(pop.yPlace(0.05));
+  }
+
+  function barTop(pop) {
+    return popY(pop.yPlace(0.95));
   }
 
   function barHeight(pop) {
-    return height * 0.9 * (pop.maxDim - pop.minDim);
+    return barTop(pop) - barBottom(pop);
   }
 
   function labelX(pop) {
@@ -269,7 +274,7 @@
   }
 
   function labelY(pop) {
-    return height * pop.minDim + 0.5 * height * (pop.maxDim - pop.minDim);
+    return popY(pop.yPlace(0.5)) + 5;
   }
 </script>
 
@@ -296,7 +301,7 @@
               <rect
                 x={barX(pop, labelAreaWidth)}
                 width={barWidth(pop, labelAreaWidth)}
-                y={barY(pop)}
+                y={barBottom(pop)}
                 height={barHeight(pop)}
                 fill={pop.color}
               />
@@ -304,15 +309,15 @@
                 <line
                   x1={ciLow(pop, labelAreaWidth)}
                   x2={ciHigh(pop, labelAreaWidth)}
-                  y1={barY(pop) + 0.5 * barHeight(pop)}
-                  y2={barY(pop) + 0.5 * barHeight(pop)}
+                  y1={barBottom(pop) + 0.5 * barHeight(pop)}
+                  y2={barBottom(pop) + 0.5 * barHeight(pop)}
                   stroke="black"
                 />
               {/if}
               {#if pop.data > 0 && pop.ci_low !== undefined}
                 <text
                   x={barNumberX(pop, labelAreaWidth)}
-                  y={barY(pop) + barHeight(pop) / 2 + 5}
+                  y={labelY(pop)}
                   text-anchor="end">{pop.data.toLocaleString()}</text
                 >
               {/if}
@@ -321,8 +326,8 @@
                 <line
                   x1={histogramX(bar["viralLoadLog"])}
                   x2={histogramX(bar["viralLoadLog"])}
-                  y1={popY(pop.maxDim)}
-                  y2={popY(pop.maxDim) - 0.004 * bar["count"]}
+                  y1={popY(pop.yPlace(1))}
+                  y2={popY(pop.yPlace(1)) - 0.004 * bar["count"]}
                   stroke={pop.color}
                   stroke-width="4"
                 />
@@ -331,7 +336,7 @@
             {#if pop.total}
               <text
                 x={barX(pop, labelAreaWidth) - total_nums_width}
-                y={barY(pop) + barHeight(pop) / 2 + 5}
+                y={barBottom(pop) + barHeight(pop) / 2 + 5}
               >
                 {pop.total.toLocaleString()}
               </text>
@@ -345,22 +350,22 @@
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 4}
-              y1={height * pop.minDim + 14}
-              y2={height * pop.maxDim - 24}
+              y1={popY(pop.yPlace(0)) + 14}
+              y2={popY(pop.yPlace(1)) - 24}
               stroke="black"
             />
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 14}
-              y1={height * pop.minDim + 14}
-              y2={height * pop.minDim + 14}
+              y1={popY(pop.yPlace(0)) + 14}
+              y2={popY(pop.yPlace(0)) + 14}
               stroke="black"
             />
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 14}
-              y1={height * pop.maxDim - 24}
-              y2={height * pop.maxDim - 24}
+              y1={popY(pop.yPlace(1)) - 24}
+              y2={popY(pop.yPlace(1)) - 24}
               stroke="black"
             />
           {/if}
