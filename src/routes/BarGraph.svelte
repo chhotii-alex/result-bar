@@ -105,7 +105,7 @@
         }
       }
       return maxVal;
-    } 
+    }
   }
 
   function findLevels(population) {
@@ -217,6 +217,8 @@
     .domain([0, 10])
     .range([labelAreaWidth + total_nums_width, width]);
 
+  $: histogramY = scaleLinear().domain([0, 15000]).range([0.95, 0.05]);
+
   function barX(pop) {
     return labelAreaWidth + total_nums_width;
   }
@@ -241,18 +243,6 @@
 
   $: popY = scaleLinear().domain([0, 1]).range([0, height]);
 
-  function barBottom(pop) {
-    return popY(pop.yPlace(0.05));
-  }
-
-  function barTop(pop) {
-    return popY(pop.yPlace(0.95));
-  }
-
-  function barHeight(pop) {
-    return barTop(pop) - barBottom(pop);
-  }
-
   function labelX(pop) {
     if (!width) return 0;
     if (bb_4 === undefined) return 0;
@@ -271,10 +261,6 @@
     }
 
     return total;
-  }
-
-  function labelY(pop) {
-    return popY(pop.yPlace(0.5)) + 5;
   }
 </script>
 
@@ -301,23 +287,23 @@
               <rect
                 x={barX(pop, labelAreaWidth)}
                 width={barWidth(pop, labelAreaWidth)}
-                y={barBottom(pop)}
-                height={barHeight(pop)}
+                y={popY(pop.yPlace(0.05))}
+                height={popY(pop.yPlace(0.95)) - popY(pop.yPlace(0.05))}
                 fill={pop.color}
               />
               {#if pop.ci_low && pop.ci_high}
                 <line
                   x1={ciLow(pop, labelAreaWidth)}
                   x2={ciHigh(pop, labelAreaWidth)}
-                  y1={barBottom(pop) + 0.5 * barHeight(pop)}
-                  y2={barBottom(pop) + 0.5 * barHeight(pop)}
+                  y1={popY(pop.yPlace(0.5))}
+                  y2={popY(pop.yPlace(0.5))}
                   stroke="black"
                 />
               {/if}
               {#if pop.data > 0 && pop.ci_low !== undefined}
                 <text
                   x={barNumberX(pop, labelAreaWidth)}
-                  y={labelY(pop)}
+                  y={popY(pop.yPlace(0.5)) + 5}
                   text-anchor="end">{pop.data.toLocaleString()}</text
                 >
               {/if}
@@ -326,8 +312,8 @@
                 <line
                   x1={histogramX(bar["viralLoadLog"])}
                   x2={histogramX(bar["viralLoadLog"])}
-                  y1={popY(pop.yPlace(1))}
-                  y2={popY(pop.yPlace(1)) - 0.004 * bar["count"]}
+                  y1={popY(pop.yPlace(histogramY(0)))}
+                  y2={popY(pop.yPlace(histogramY(bar["count"])))}
                   stroke={pop.color}
                   stroke-width="4"
                 />
@@ -336,7 +322,7 @@
             {#if pop.total}
               <text
                 x={barX(pop, labelAreaWidth) - total_nums_width}
-                y={barBottom(pop) + barHeight(pop) / 2 + 5}
+                y={popY(pop.yPlace(0.5)) + 5}
               >
                 {pop.total.toLocaleString()}
               </text>
@@ -373,7 +359,7 @@
         {#if pop.level > 0}
           <text
             x={labelX(pop, labelAreaWidth)}
-            y={labelY(pop, height, labelAreaWidth)}
+            y={popY(pop.yPlace(0.5)) + 5}
             text-anchor="end"
           >
             {pop.label}
