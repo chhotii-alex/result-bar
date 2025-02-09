@@ -70,7 +70,7 @@
   $: maxValue = findMaxValue(aData);
   $: maxTotal = findMaxTotal(aData);
 
-  $: levels = findLevels(aData, 0, 1);
+  $: levels = findLevels(aData);
 
   function findMaxValue(population) {
     if (typeof population.data == "number") {
@@ -104,13 +104,10 @@
         }
       }
       return maxVal;
-    } else {
-      console.log("TODO", population.data);
-      return 0;
-    }
+    } 
   }
 
-  function findLevels(population, minDim, maxDim) {
+  function findLevels(population) {
     if (!population) return 0;
     if (typeof population.data == "number") return 0;
     let maxDepth = 0;
