@@ -1,6 +1,7 @@
 <script>
   import { tick } from "svelte";
   import { scaleLinear } from "d3-scale";
+  import { line, curveBumpX } from "d3-shape";
   export let numbers;
 
   let colorNames = [
@@ -280,16 +281,13 @@
                 >
               {/if}
             {:else if pop.type == "histogram"}
-              {#each pop.histogram as bar}
-                <line
-                  x1={histogramX(bar["viralLoadLog"])}
-                  x2={histogramX(bar["viralLoadLog"])}
-                  y1={popY(pop.yPlace(histogramY(0)))}
-                  y2={popY(pop.yPlace(histogramY(bar["count"])))}
-                  stroke={pop.color}
-                  stroke-width="4"
-                />
-              {/each}
+              <path
+                d={line()
+                   .curve(curveBumpX)
+                   .x((d) => histogramX(d.viralLoadLog))
+                   .y((d) => popY(pop.yPlace(histogramY(d.count))))(pop.histogram)}
+                style={`stroke: ${pop.color}; fill: ${pop.color}`}
+              />
             {/if}
             {#if pop.total}
               <text
