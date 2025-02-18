@@ -136,108 +136,91 @@ def get_data(query_params: QueryParams):
         return get_data_quantitative(query_params)
 
 def get_data_quantitative(query_params: QueryParams):
-    data = {"dx" : query_params.test_name, "label": "all", 'data': []}
     params = query_params.params
     with eng.connect() as con:
-        data['data'].append(counts_for_label(
+        results = counts_for_label(
             query_params.test_name,
-            'negative',
-            "result_value_num=0.0",
+            'all',
+            None,
             list(params.keys()),
             params,
             con,
             'quantresults_public'
-        ))
-    data['data'].append(histograms_for_label(
-        query_params.test_name,
-        'positive',
-        "result_value_num>0.0",
-        list(params.keys()),
-        params,
-        eng,
-        'quantresults_public'
-    ))
-    annotate_totals(data, params)    
-    return data
+        )
+    return results
     
-def annotate_totals(data, params):
-    # Calculate confidence intervals:
-    #     see https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats._result_classes.BinomTestResult.proportion_ci.html
-    totals = {}
-    remaining_keys = list(params.keys())
-    for result in data['data']:
-        add_to_totals(totals, remaining_keys, result['data'])
-    for result in data['data']:
-        distribute_totals(totals, remaining_keys, result['data'])
-    return data
-
 def get_data_discrete(query_params: QueryParams):
-    data = {"dx" : query_params.test_name, "label": "all", 'data': []}
     params = query_params.params
     with eng.connect() as con:
-        for label in ['positive', 'negative']:
-            data['data'].append(counts_for_label(
-                query_params.test_name,
-                label,
-                "result='%s'" % label,
-                list(params.keys()),
-                params,
-                con,
-                'results_public'
-            ))
-    annotate_totals(data, params)
-    return data
+        results = counts_for_label(query_params.test_name,
+                                   'all',
+                                   None,
+                                   list(params.keys()),
+                                   params,
+                                   con,
+                                   'results_public')
+    return results
 
-def distribute_totals(totals, remaining_keys, data):
-    for result in data:
-        if type(result['data']) == list:
-            distribute_totals(totals[result['label']],
-                          remaining_keys[1:],
-                          result['data'])
-        else:
-            result['total'] = totals[result['label']]
-            stat_result = binomtest(k=result['data'], n=result['total'], p=0.1)
-            ci = stat_result.proportion_ci()
-            result['ci_low'] = ci.low
-            result['ci_high'] = ci.high
-
-def add_to_totals(totals, remaining_keys, data):
-    for result in data:
-        if type(result['data']) == list:
-            if result['label'] not in totals:
-                totals[result['label']] = {}
-            add_to_totals(totals[result['label']],
-                          remaining_keys[1:],
-                          result['data'])
-        else:
-            if result['label'] not in totals:
-                totals[result['label']] = 0
-            totals[result['label']] += result['data']
-
-def counts_for_label(dx, label, query, remaining_keys, params, con, table_name):
-    result = {"label": label, 'dx': dx, 'type': 'counts'}
+def counts_for_label(dx, label, where, remaining_keys, params, con, table_name):
+    result = {"label": label, 'dx': dx, 'type': 'counts', 'data': []}
     if remaining_keys:
-        result['data'] = []
         key = remaining_keys[0]
         levels = params[key]
         for level in splits[key].splits:
             if level.value in levels:
-                new_query = "%s AND %s" % (query,
+                if where is None:
+                    new_where = level.whereClause
+                else:
+                    new_where = "%s AND %s" % (where,
                                            level.whereClause)
                 result['data'].append(counts_for_label(
                     dx,
                     level.valueDisplayName,
-                    new_query,
+                    new_where,
                     remaining_keys[1:],
                     params,
                     con,
                     table_name
                 ))
     else:
-        query = """SELECT count(*) from %s
-           WHERE dx = '%s'
-           AND %s""" % (table_name, dx, query)
-        result['data'] = con.execute(text(query)).scalar_one()
+        total = 0
+        for label in ['positive', 'negative']:
+            data_type = 'counts'
+            if table_name == 'results_public':
+                condition = "result='%s'" % label
+            else:
+                if label == 'positive':
+                    condition = "result_value_num>0.0"
+                    data_type = 'histogram'
+                else:
+                    condition = "result_value_num=0.0"
+            if where is None:
+                new_where = condition
+            else:
+                new_where = "%s AND %s" % (where, condition)
+            if data_type == 'counts':
+                query = """SELECT count(*) from %s
+                WHERE dx = '%s'
+                AND %s""" % (table_name, dx, new_where)
+                count = con.execute(text(query)).scalar_one()
+            else:
+                query = """SELECT result_value_log10 from %s
+                  WHERE dx = '%s'
+                  AND %s""" % (table_name, dx, new_where)
+                with con.execution_options(stream_results=True,
+                                            max_row_buffer=100).execute(
+                                                text(query)) as r:
+                    rows = [row.result_value_log10 for row in r]
+                    histogram_data = histogram(rows)
+                    count = len(rows)  
+            total += count
+            data_record = {
+                'label': label, 'dx': dx, 'type': data_type, 'data': count}
+            if data_type == 'histogram':
+                data_record['histogram'] = histogram_data
+            result['data'].append(data_record)
+        for i in range(2):
+            result['data'][i]['total'] = total
     return result
 
 def kernel_density(data, start=0.0, stop=11.0):
@@ -264,40 +247,3 @@ def histogram(data):
          "count": density[i][1]*total*2}
         for i
         in range(density.shape[0]) ]
-
-def histograms_for_label(dx, label, query, remaining_keys, params, eng, table_name):
-    result = {"label": label, 'type': 'histogram' }
-    if remaining_keys:
-        result['data'] = []
-        key = remaining_keys[0]
-        levels = params[key]
-        for level in splits[key].splits:
-            if level.value in levels:
-                new_query = "%s AND %s" % (query,
-                                           level.whereClause)
-                result['data'].append(histograms_for_label(
-                    dx,
-                    level.valueDisplayName,
-                    new_query,
-                    remaining_keys[1:],
-                    params,
-                    eng,
-                    table_name
-                ))
-    else:
-        # TODO: fix up the units in the database
-        q = """SELECT result_value_num, units from %s
-           WHERE dx = '%s'
-           AND units like 'log10%s'
-           AND %s""" % (table_name, dx, '%%', query)
-        df = pd.read_sql(q, eng)
-        q = """SELECT result_value_num, units from %s
-           WHERE dx = '%s'
-           AND units NOT like 'log10%s'
-           AND %s""" % (table_name, dx, '%%', query)
-        df2 = pd.read_sql(q, eng)
-        df2['result_value_num'] = np.log10(df2['result_value_num'])
-        df = pd.concat((df, df2))
-        result['histogram'] = histogram(df['result_value_num'])
-        result['data'] = df.shape[0]
-    return result
