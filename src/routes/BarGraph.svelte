@@ -52,7 +52,9 @@
     population.level = level;
     population.color = getNextColor();
     if (population.data) {
-      if (typeof population.data != "number") {
+      if (typeof population.data == "number") {
+        population.xScale = scaleLinear().domain([0, population.total]).range([0, 1]);
+      } else {
         let childWidth = (maxDim - minDim) / population.data.length;
         for (let i = 0; i < population.data.length; ++i) {
           markup(
@@ -67,7 +69,21 @@
     return population;
   }
 
+  function hasAnyHistograms(population) {
+    if (typeof population.data == "number") {
+      if (population.histogram) return true;
+    }
+    else {
+       for (let i = 0; i < population.data.length; ++i) {
+          if (hasAnyHistograms(population.data[i])) return true;
+       }
+    }
+    return false;
+  }
+
   $: aData = markup(deepCopy(numbers), 0, 1, 0);
+
+  $: hasHistograms = hasAnyHistograms(aData);
 
   $: maxValue = findMaxValue(aData);
   $: maxTotal = findMaxTotal(aData);
@@ -207,7 +223,7 @@
   $: histogramY = scaleLinear().domain([0, 15000]).range([0.95, 0.05]);
 
   $: barX = scaleLinear()
-    .domain([0, maxValue])
+    .domain([0, 1])
     .range([labelAreaWidth + total_nums_width, width]);
 
   $: popY = scaleLinear().domain([0, 1]).range([0, height]);
@@ -253,15 +269,15 @@
             {#if pop.type == "counts"}
               <rect
                 x={barX(0)}
-                width={barX(pop.data) - barX(0)}
+                width={barX(pop.xScale(pop.data)) - barX(0)}
                 y={popY(pop.yPlace(0.05))}
                 height={popY(pop.yPlace(0.95)) - popY(pop.yPlace(0.05))}
                 fill={pop.color}
               />
               {#if pop.ci_low && pop.ci_high}
                 <line
-                  x1={barX(pop.ci_low * pop.total)}
-                  x2={barX(pop.ci_high * pop.total)}
+                  x1={barX(pop.xScale(pop.ci_low * pop.total))}
+                  x2={barX(pop.xScale(pop.ci_high * pop.total))}
                   y1={popY(pop.yPlace(0.5))}
                   y2={popY(pop.yPlace(0.5))}
                   stroke="black"
@@ -271,8 +287,8 @@
                 <text
                   x={Math.max(
                     Math.min(
-                      barX(pop.data) - 5,
-                      barX(pop.ci_low * pop.total) - 2
+                      barX(pop.xScale(pop.data)) - 5,
+                      barX(pop.xScale(pop.ci_low * pop.total)) - 2
                     ),
                     barX(0) + 50
                   )}
@@ -306,22 +322,22 @@
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 4}
-              y1={popY(pop.yPlace(0)) + 14}
-              y2={popY(pop.yPlace(1)) - 24}
+              y1={popY(pop.yPlace(0.03))}
+              y2={popY(pop.yPlace(0.97))}
               stroke="black"
             />
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 14}
-              y1={popY(pop.yPlace(0)) + 14}
-              y2={popY(pop.yPlace(0)) + 14}
+              y1={popY(pop.yPlace(0.03))}
+              y2={popY(pop.yPlace(0.03))}
               stroke="black"
             />
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 14}
-              y1={popY(pop.yPlace(1)) - 24}
-              y2={popY(pop.yPlace(1)) - 24}
+              y1={popY(pop.yPlace(0.97))}
+              y2={popY(pop.yPlace(0.97))}
               stroke="black"
             />
           {/if}
@@ -336,6 +352,22 @@
           </text>
         {/if}
       {/each}
+      {#if hasHistograms}
+        <g class="x-axis"  transform={`translate(0, ${height})`}>
+           <line x1={barX(0)} x2={barX(1)} y1="0" y2="0" stroke="black" />
+	   {#each [0, 3, 6, 9] as tick}
+	      <g class="tick" transform={`translate(${histogramX(tick)},0)`}>
+                <foreignObject width="2em" height="2em" x="-1em" y="0.5em">
+                  <div class="exponentlabel">
+                    10<sup>{tick}</sup>
+                  </div>
+                </foreignObject>    
+	        <line x1="0" x2="0" y1="0" y2="5" stroke="black" />
+	      </g>
+	   {/each}
+	</g>
+        <text x={40} y={50} >Howdy!</text>
+      {/if}
 
       <!-- Discreetly find out the text size of our labels -->
       <text x="-1000" y="-1000" bind:this={strSizer_1}

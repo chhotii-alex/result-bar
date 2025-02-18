@@ -220,7 +220,13 @@ def counts_for_label(dx, label, where, remaining_keys, params, con, table_name):
                 data_record['histogram'] = histogram_data
             result['data'].append(data_record)
         for i in range(2):
-            result['data'][i]['total'] = total
+            data_record = result['data'][i]
+            data_record['total'] = total
+            stat_result = binomtest(k=data_record['data'], n=data_record['total'], p=0.1)
+            ci = stat_result.proportion_ci()
+            data_record['ci_low'] = ci.low
+            data_record['ci_high'] = ci.high
+            
     return result
 
 def kernel_density(data, start=0.0, stop=11.0):
