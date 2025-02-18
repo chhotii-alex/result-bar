@@ -1,4 +1,3 @@
-* quant smoothed: show x-axis values
 * quant smoothed: y-value normalized
 * quant positive: show both bar and smoothed distribution
 * quant: more room allotted to histogram

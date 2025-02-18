@@ -85,26 +85,9 @@
 
   $: hasHistograms = hasAnyHistograms(aData);
 
-  $: maxValue = findMaxValue(aData);
   $: maxTotal = findMaxTotal(aData);
 
   $: levels = findLevels(aData);
-
-  function findMaxValue(population) {
-    if (typeof population.data == "number") {
-      return population.data;
-    }
-    let maxVal = 0.0;
-    if (population.data) {
-      for (let i = 0; i < population.data.length; ++i) {
-        let val = findMaxValue(population.data[i]);
-        if (val > maxVal) {
-          maxVal = val;
-        }
-      }
-    }
-    return maxVal;
-  }
 
   function findMaxTotal(population) {
     if (typeof population.data == "number") {
@@ -216,11 +199,30 @@
     return sum;
   }
 
+  function findArea(histogram) {
+    let area = 0;
+    for (let bin of histogram) {
+      area += bin.count;
+    }
+    return area;
+  }
+
+  function findDensityPeak(histogram) {
+    let area = findArea(histogram);
+    let peak = 0;
+    for (let bin of histogram) {
+      if (bin.count > peak) {
+        peak = bin.count;
+      }
+    }
+    return peak/area;
+  }
+
   $: histogramX = scaleLinear()
     .domain([0, 10])
     .range([labelAreaWidth + total_nums_width, width]);
 
-  $: histogramY = scaleLinear().domain([0, 15000]).range([0.95, 0.05]);
+  $: histogramY = scaleLinear().domain([0, 15000]).range([0.8, 0.05]);
 
   $: barX = scaleLinear()
     .domain([0, 1])
