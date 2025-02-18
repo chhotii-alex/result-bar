@@ -1,8 +1,14 @@
-# Svelte frontend for 2024-2025 FDA work
+# Svelte WebApp for 2024-2025 FDA work
 
-The starter for this code was the antigen-sensitivity front-end.
+The starter for the front-end code was the antigen-sensitivity front-end.
 
-Everything that runs at the client (browser) end of things.
+The backend (server), in the `backend` directory, is implemented using FastAPI.
+See [the FastAPI tutorial](https://fastapi.tiangolo.com/tutorial/)
+It requires that you create a file named `connect.py` which declares the 
+`ConnectionString` for the database.
+After creating `connect.py` and installing the Python dependencies, run the backend
+server by running: 
+`fastapi dev main.py`
 
 ## Development
 
