@@ -211,7 +211,10 @@ def counts_for_label(dx, label, where, remaining_keys, params, con, table_name):
                                             max_row_buffer=100).execute(
                                                 text(query)) as r:
                     rows = [row.result_value_log10 for row in r]
-                    histogram_data = histogram(rows)
+                    if len(rows) > 0:
+                        histogram_data = histogram(rows)
+                    else:
+                        histogram_data = None
                     count = len(rows)  
             total += count
             data_record = {
@@ -222,10 +225,11 @@ def counts_for_label(dx, label, where, remaining_keys, params, con, table_name):
         for i in range(2):
             data_record = result['data'][i]
             data_record['total'] = total
-            stat_result = binomtest(k=data_record['data'], n=data_record['total'], p=0.1)
-            ci = stat_result.proportion_ci()
-            data_record['ci_low'] = ci.low
-            data_record['ci_high'] = ci.high
+            if data_record['data'] > 0:
+                stat_result = binomtest(k=data_record['data'], n=data_record['total'], p=0.1)
+                ci = stat_result.proportion_ci()
+                data_record['ci_low'] = ci.low
+                data_record['ci_high'] = ci.high
         result['total'] = total    
     return result
 

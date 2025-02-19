@@ -1,4 +1,2 @@
-* quant positive: show both bar for positive and smoothed distribution
-* backend fucks up when a query returns zero rows
 * if group size too small, merge with parent group
 * some things look cramped in layout of BarGraph
