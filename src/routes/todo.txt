@@ -1,4 +1,3 @@
-* quant smoothed: y-value normalized
 * quant positive: show both bar and smoothed distribution
 * quant: more room allotted to histogram
 * backend fucks up when a query returns zero rows

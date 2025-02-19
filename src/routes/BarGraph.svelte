@@ -8,13 +8,11 @@
     "Crimson",
     "DeepPink",
     "Coral",
-    "PaleGoldenrod",
     "Magenta",
     "Chartreuse",
     "DarkOliveGreen",
     "PaleTurquoise",
     "RoyalBlue",
-    "BlanchedAlmond",
     "Sienna",
     "DarkSlateGray",
     "AliceBlue",
@@ -54,6 +52,10 @@
     if (population.data) {
       if (typeof population.data == "number") {
         population.xScale = scaleLinear().domain([0, population.total]).range([0, 1]);
+	if (population.histogram) {
+	   let peak = findDensityPeak(population.histogram);
+	  population.histogramY = scaleLinear().domain([0, peak]).range([0.8, 0.05]);
+	}
       } else {
         let childWidth = (maxDim - minDim) / population.data.length;
         for (let i = 0; i < population.data.length; ++i) {
@@ -199,23 +201,14 @@
     return sum;
   }
 
-  function findArea(histogram) {
-    let area = 0;
-    for (let bin of histogram) {
-      area += bin.count;
-    }
-    return area;
-  }
-
   function findDensityPeak(histogram) {
-    let area = findArea(histogram);
     let peak = 0;
     for (let bin of histogram) {
       if (bin.count > peak) {
         peak = bin.count;
       }
     }
-    return peak/area;
+    return peak;
   }
 
   $: histogramX = scaleLinear()
@@ -303,7 +296,7 @@
                 d={line()
                    .curve(curveBumpX)
                    .x((d) => histogramX(d.viralLoadLog))
-                   .y((d) => popY(pop.yPlace(histogramY(d.count))))(pop.histogram)}
+                   .y((d) => popY(pop.yPlace(pop.histogramY(d.count))))(pop.histogram)}
                 style={`stroke: ${pop.color}; fill: ${pop.color}`}
               />
             {/if}
@@ -354,6 +347,19 @@
           </text>
         {/if}
       {/each}
+      <g class="x-axis" transform="translate(0, -35)" overflow="visible">
+      	<line x1={barX(0)} x2={barX(1)} y1="33" y2="33" stroke="black" />
+        {#each [0.0, 0.2, 0.4, 0.6, 0.8, 1.0] as tick}
+	  <g class="tick" transform={`translate(${barX(tick)},0)`}>
+                <foreignObject width="2.5em" height="2em" x="-0.5em" y="0.5em">
+                  <div class="exponentlabel">
+                    {Math.round(tick*100)}%
+                  </div>
+                </foreignObject>    
+	        <line x1="0" x2="0" y1="33" y2="28" stroke="black" />	    
+	  </g>
+	{/each}
+      </g>
       {#if hasHistograms}
         <g class="x-axis"  transform={`translate(0, ${height})`}>
            <line x1={barX(0)} x2={barX(1)} y1="0" y2="0" stroke="black" />
