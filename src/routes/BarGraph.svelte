@@ -8,13 +8,11 @@
     "Crimson",
     "DeepPink",
     "Coral",
-    "PaleGoldenrod",
     "Magenta",
     "Chartreuse",
     "DarkOliveGreen",
     "PaleTurquoise",
     "RoyalBlue",
-    "BlanchedAlmond",
     "Sienna",
     "DarkSlateGray",
     "AliceBlue",
@@ -45,6 +43,11 @@
     return theCopy;
   }
 
+  function widthPointsForPop(pop) {
+    if (pop.histogram) return 3;
+    return 1;
+  }
+
   function markup(population, minDim, maxDim, level) {
     population.minDim = minDim;
     population.maxDim = maxDim;
@@ -52,43 +55,52 @@
     population.level = level;
     population.color = getNextColor();
     if (population.data) {
-      if (typeof population.data != "number") {
-        let childWidth = (maxDim - minDim) / population.data.length;
+      if (typeof population.data == "number") {
+        population.xScale = scaleLinear().domain([0, population.total]).range([0, 1]);
+	if (population.histogram) {
+	   let peak = findDensityPeak(population.histogram);
+	  population.histogramY = scaleLinear().domain([0, peak]).range([0.8, 0.05]);
+	}
+      } else {
+        let widthPoints = 0;
+        for (let i = 0; i < population.data.length; ++i) {
+	  widthPoints += widthPointsForPop(population.data[i]);
+	}
+        let childWidth = (maxDim - minDim) / widthPoints;
+	let pointsSoFar = 0;
         for (let i = 0; i < population.data.length; ++i) {
           markup(
             population.data[i],
-            minDim + i * childWidth,
-            minDim + (i + 1) * childWidth,
+            minDim + pointsSoFar * childWidth,
+            minDim + (pointsSoFar + widthPointsForPop(population.data[i])) * childWidth,
             level + 1
           );
+	  pointsSoFar += widthPointsForPop(population.data[i]);
         }
       }
     }
     return population;
   }
 
+  function hasAnyHistograms(population) {
+    if (typeof population.data == "number") {
+      if (population.histogram) return true;
+    }
+    else {
+       for (let i = 0; i < population.data.length; ++i) {
+          if (hasAnyHistograms(population.data[i])) return true;
+       }
+    }
+    return false;
+  }
+
   $: aData = markup(deepCopy(numbers), 0, 1, 0);
 
-  $: maxValue = findMaxValue(aData);
+  $: hasHistograms = hasAnyHistograms(aData);
+
   $: maxTotal = findMaxTotal(aData);
 
   $: levels = findLevels(aData);
-
-  function findMaxValue(population) {
-    if (typeof population.data == "number") {
-      return population.data;
-    }
-    let maxVal = 0.0;
-    if (population.data) {
-      for (let i = 0; i < population.data.length; ++i) {
-        let val = findMaxValue(population.data[i]);
-        if (val > maxVal) {
-          maxVal = val;
-        }
-      }
-    }
-    return maxVal;
-  }
 
   function findMaxTotal(population) {
     if (typeof population.data == "number") {
@@ -200,14 +212,24 @@
     return sum;
   }
 
+  function findDensityPeak(histogram) {
+    let peak = 0;
+    for (let bin of histogram) {
+      if (bin.count > peak) {
+        peak = bin.count;
+      }
+    }
+    return peak;
+  }
+
   $: histogramX = scaleLinear()
     .domain([0, 10])
     .range([labelAreaWidth + total_nums_width, width]);
 
-  $: histogramY = scaleLinear().domain([0, 15000]).range([0.95, 0.05]);
+  $: histogramY = scaleLinear().domain([0, 15000]).range([0.8, 0.05]);
 
   $: barX = scaleLinear()
-    .domain([0, maxValue])
+    .domain([0, 1])
     .range([labelAreaWidth + total_nums_width, width]);
 
   $: popY = scaleLinear().domain([0, 1]).range([0, height]);
@@ -249,19 +271,29 @@
       <g>
         {#if height > 20}
           <text x={barX(0) - total_nums_width} y="0"> total n </text>
+	  {#each populationsAtLevel(aData, levels-1) as pop}
+            {#if pop.total}
+              <text
+                x={barX(0) - total_nums_width}
+                y={popY(pop.yPlace(0.5)) + 5}
+              >
+                {pop.total.toLocaleString()}
+              </text>
+            {/if}
+	  {/each}
           {#each populationsAtLevel(aData, levels) as pop}
             {#if pop.type == "counts"}
               <rect
                 x={barX(0)}
-                width={barX(pop.data) - barX(0)}
+                width={barX(pop.xScale(pop.data)) - barX(0)}
                 y={popY(pop.yPlace(0.05))}
                 height={popY(pop.yPlace(0.95)) - popY(pop.yPlace(0.05))}
                 fill={pop.color}
               />
               {#if pop.ci_low && pop.ci_high}
                 <line
-                  x1={barX(pop.ci_low * pop.total)}
-                  x2={barX(pop.ci_high * pop.total)}
+                  x1={barX(pop.xScale(pop.ci_low * pop.total))}
+                  x2={barX(pop.xScale(pop.ci_high * pop.total))}
                   y1={popY(pop.yPlace(0.5))}
                   y2={popY(pop.yPlace(0.5))}
                   stroke="black"
@@ -271,8 +303,8 @@
                 <text
                   x={Math.max(
                     Math.min(
-                      barX(pop.data) - 5,
-                      barX(pop.ci_low * pop.total) - 2
+                      barX(pop.xScale(pop.data)) - 5,
+                      barX(pop.xScale(pop.ci_low * pop.total)) - 2
                     ),
                     barX(0) + 50
                   )}
@@ -283,19 +315,13 @@
             {:else if pop.type == "histogram"}
               <path
                 d={line()
-                   .curve(curveBumpX)
-                   .x((d) => histogramX(d.viralLoadLog))
-                   .y((d) => popY(pop.yPlace(histogramY(d.count))))(pop.histogram)}
+                  .curve(curveBumpX)
+                  .x((d) => histogramX(d.viralLoadLog))
+                  .y((d) => popY(pop.yPlace(pop.histogramY(d.count))))(
+                  pop.histogram
+                )}
                 style={`stroke: ${pop.color}; fill: ${pop.color}`}
               />
-            {/if}
-            {#if pop.total}
-              <text
-                x={barX(0) - total_nums_width}
-                y={popY(pop.yPlace(0.5)) + 5}
-              >
-                {pop.total.toLocaleString()}
-              </text>
             {/if}
           {/each}
         {/if}
@@ -306,22 +332,22 @@
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 4}
-              y1={popY(pop.yPlace(0)) + 14}
-              y2={popY(pop.yPlace(1)) - 24}
+              y1={popY(pop.yPlace(0.03))}
+              y2={popY(pop.yPlace(0.97))}
               stroke="black"
             />
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 14}
-              y1={popY(pop.yPlace(0)) + 14}
-              y2={popY(pop.yPlace(0)) + 14}
+              y1={popY(pop.yPlace(0.03))}
+              y2={popY(pop.yPlace(0.03))}
               stroke="black"
             />
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 14}
-              y1={popY(pop.yPlace(1)) - 24}
-              y2={popY(pop.yPlace(1)) - 24}
+              y1={popY(pop.yPlace(0.97))}
+              y2={popY(pop.yPlace(0.97))}
               stroke="black"
             />
           {/if}
@@ -336,6 +362,34 @@
           </text>
         {/if}
       {/each}
+      <g class="x-axis" transform="translate(0, -35)" overflow="visible">
+        <line x1={barX(0)} x2={barX(1)} y1="33" y2="33" stroke="black" />
+        {#each [0.0, 0.2, 0.4, 0.6, 0.8, 1.0] as tick}
+          <g class="tick" transform={`translate(${barX(tick)},0)`}>
+            <foreignObject width="2.5em" height="2em" x="-0.5em" y="0.5em">
+              <div class="exponentlabel">
+                {Math.round(tick * 100)}%
+              </div>
+            </foreignObject>
+            <line x1="0" x2="0" y1="33" y2="28" stroke="black" />
+          </g>
+        {/each}
+      </g>
+      {#if hasHistograms}
+        <g class="x-axis" transform={`translate(0, ${height})`}>
+          <line x1={barX(0)} x2={barX(1)} y1="0" y2="0" stroke="black" />
+          {#each [0, 3, 6, 9] as tick}
+            <g class="tick" transform={`translate(${histogramX(tick)},0)`}>
+              <foreignObject width="2em" height="2em" x="-1em" y="0.5em">
+                <div class="exponentlabel">
+                  10<sup>{tick}</sup>
+                </div>
+              </foreignObject>
+              <line x1="0" x2="0" y1="0" y2="5" stroke="black" />
+            </g>
+          {/each}
+        </g>
+      {/if}
 
       <!-- Discreetly find out the text size of our labels -->
       <text x="-1000" y="-1000" bind:this={strSizer_1}
