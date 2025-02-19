@@ -166,6 +166,7 @@ def counts_for_label(dx, label, where, remaining_keys, params, con, table_name):
     if remaining_keys:
         key = remaining_keys[0]
         levels = params[key]
+        total = 0
         for level in splits[key].splits:
             if level.value in levels:
                 if where is None:
@@ -173,7 +174,7 @@ def counts_for_label(dx, label, where, remaining_keys, params, con, table_name):
                 else:
                     new_where = "%s AND %s" % (where,
                                            level.whereClause)
-                result['data'].append(counts_for_label(
+                level_results = counts_for_label(
                     dx,
                     level.valueDisplayName,
                     new_where,
@@ -181,7 +182,10 @@ def counts_for_label(dx, label, where, remaining_keys, params, con, table_name):
                     params,
                     con,
                     table_name
-                ))
+                )
+                total += level_results['total']
+                result['data'].append(level_results)
+        result['total'] = total
     else:
         total = 0
         for label in ['positive', 'negative']:
@@ -226,7 +230,7 @@ def counts_for_label(dx, label, where, remaining_keys, params, con, table_name):
             data_record = result['data'][i]
             data_record['total'] = total
             if data_record['data'] > 0:
-                stat_result = binomtest(k=data_record['data'], n=data_record['total'], p=0.1)
+                stat_result = binomtest(k=data_record['data'], n=total, p=0.1)
                 ci = stat_result.proportion_ci()
                 data_record['ci_low'] = ci.low
                 data_record['ci_high'] = ci.high
