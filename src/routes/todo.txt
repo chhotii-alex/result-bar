@@ -1,8 +1,4 @@
-* quant positive: show both bar and smoothed distribution
-* quant: more room allotted to histogram
+* quant positive: show both bar for positive and smoothed distribution
 * backend fucks up when a query returns zero rows
 * if group size too small, merge with parent group
-* if showing histogram, don't also show these groups in bars
-* label histograms
-* Is Histgram supressing low-n groups?
-* BarGraph should react to changes in clientWidth/clientHeight
+* some things look cramped in layout of BarGraph
