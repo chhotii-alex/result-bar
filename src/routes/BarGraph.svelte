@@ -43,6 +43,11 @@
     return theCopy;
   }
 
+  function widthPointsForPop(pop) {
+    if (pop.histogram) return 3;
+    return 1;
+  }
+
   function markup(population, minDim, maxDim, level) {
     population.minDim = minDim;
     population.maxDim = maxDim;
@@ -57,14 +62,20 @@
 	  population.histogramY = scaleLinear().domain([0, peak]).range([0.8, 0.05]);
 	}
       } else {
-        let childWidth = (maxDim - minDim) / population.data.length;
+        let widthPoints = 0;
+        for (let i = 0; i < population.data.length; ++i) {
+	  widthPoints += widthPointsForPop(population.data[i]);
+	}
+        let childWidth = (maxDim - minDim) / widthPoints;
+	let pointsSoFar = 0;
         for (let i = 0; i < population.data.length; ++i) {
           markup(
             population.data[i],
-            minDim + i * childWidth,
-            minDim + (i + 1) * childWidth,
+            minDim + pointsSoFar * childWidth,
+            minDim + (pointsSoFar + widthPointsForPop(population.data[i])) * childWidth,
             level + 1
           );
+	  pointsSoFar += widthPointsForPop(population.data[i]);
         }
       }
     }
@@ -260,6 +271,16 @@
       <g>
         {#if height > 20}
           <text x={barX(0) - total_nums_width} y="0"> total n </text>
+	  {#each populationsAtLevel(aData, levels-1) as pop}
+            {#if pop.total}
+              <text
+                x={barX(0) - total_nums_width}
+                y={popY(pop.yPlace(0.5)) + 5}
+              >
+                {pop.total.toLocaleString()}
+              </text>
+            {/if}
+	  {/each}
           {#each populationsAtLevel(aData, levels) as pop}
             {#if pop.type == "counts"}
               <rect
@@ -294,19 +315,13 @@
             {:else if pop.type == "histogram"}
               <path
                 d={line()
-                   .curve(curveBumpX)
-                   .x((d) => histogramX(d.viralLoadLog))
-                   .y((d) => popY(pop.yPlace(pop.histogramY(d.count))))(pop.histogram)}
+                  .curve(curveBumpX)
+                  .x((d) => histogramX(d.viralLoadLog))
+                  .y((d) => popY(pop.yPlace(pop.histogramY(d.count))))(
+                  pop.histogram
+                )}
                 style={`stroke: ${pop.color}; fill: ${pop.color}`}
               />
-            {/if}
-            {#if pop.total}
-              <text
-                x={barX(0) - total_nums_width}
-                y={popY(pop.yPlace(0.5)) + 5}
-              >
-                {pop.total.toLocaleString()}
-              </text>
             {/if}
           {/each}
         {/if}
@@ -348,33 +363,32 @@
         {/if}
       {/each}
       <g class="x-axis" transform="translate(0, -35)" overflow="visible">
-      	<line x1={barX(0)} x2={barX(1)} y1="33" y2="33" stroke="black" />
+        <line x1={barX(0)} x2={barX(1)} y1="33" y2="33" stroke="black" />
         {#each [0.0, 0.2, 0.4, 0.6, 0.8, 1.0] as tick}
-	  <g class="tick" transform={`translate(${barX(tick)},0)`}>
-                <foreignObject width="2.5em" height="2em" x="-0.5em" y="0.5em">
-                  <div class="exponentlabel">
-                    {Math.round(tick*100)}%
-                  </div>
-                </foreignObject>    
-	        <line x1="0" x2="0" y1="33" y2="28" stroke="black" />	    
-	  </g>
-	{/each}
+          <g class="tick" transform={`translate(${barX(tick)},0)`}>
+            <foreignObject width="2.5em" height="2em" x="-0.5em" y="0.5em">
+              <div class="exponentlabel">
+                {Math.round(tick * 100)}%
+              </div>
+            </foreignObject>
+            <line x1="0" x2="0" y1="33" y2="28" stroke="black" />
+          </g>
+        {/each}
       </g>
       {#if hasHistograms}
-        <g class="x-axis"  transform={`translate(0, ${height})`}>
-           <line x1={barX(0)} x2={barX(1)} y1="0" y2="0" stroke="black" />
-	   {#each [0, 3, 6, 9] as tick}
-	      <g class="tick" transform={`translate(${histogramX(tick)},0)`}>
-                <foreignObject width="2em" height="2em" x="-1em" y="0.5em">
-                  <div class="exponentlabel">
-                    10<sup>{tick}</sup>
-                  </div>
-                </foreignObject>    
-	        <line x1="0" x2="0" y1="0" y2="5" stroke="black" />
-	      </g>
-	   {/each}
-	</g>
-        <text x={40} y={50} >Howdy!</text>
+        <g class="x-axis" transform={`translate(0, ${height})`}>
+          <line x1={barX(0)} x2={barX(1)} y1="0" y2="0" stroke="black" />
+          {#each [0, 3, 6, 9] as tick}
+            <g class="tick" transform={`translate(${histogramX(tick)},0)`}>
+              <foreignObject width="2em" height="2em" x="-1em" y="0.5em">
+                <div class="exponentlabel">
+                  10<sup>{tick}</sup>
+                </div>
+              </foreignObject>
+              <line x1="0" x2="0" y1="0" y2="5" stroke="black" />
+            </g>
+          {/each}
+        </g>
       {/if}
 
       <!-- Discreetly find out the text size of our labels -->
