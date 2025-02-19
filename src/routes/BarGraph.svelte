@@ -15,7 +15,6 @@
     "RoyalBlue",
     "Sienna",
     "DarkSlateGray",
-    "AliceBlue",
     "Chocolate",
     "DarkBlue",
     "DarkGreen",
@@ -44,7 +43,7 @@
   }
 
   function widthPointsForPop(pop) {
-    if (pop.histogram) return 3;
+    if (pop.histogram) return 5;
     return 1;
   }
 
@@ -141,9 +140,21 @@
       if (typeof population.data != "number") {
         a = population.data.map((pop) => findPopulations(pop));
       }
-      a.push(population);
+      if (population.histogram) {
+	let fraction = (widthPointsForPop(population)-1)/widthPointsForPop(population);
+	let divide = (fraction*(population.maxDim-population.minDim)+population.minDim);
+        let posBar = {...population, histogram:null, type:'counts', minDim:divide};
+	let distribution = {...population, label:'distribution', color:getNextColor(), maxDim:divide};
+	posBar.yPlace = scaleLinear().domain([0, 1]).range([posBar.minDim, posBar.maxDim]);
+	distribution.yPlace = scaleLinear().domain([0, 1]).range([distribution.minDim, distribution.maxDim]);
+	a.push(posBar);
+	a.push(distribution);
+      }
+      else {
+         a.push(population);
+      }
     }
-    return a.flat();
+    return a.flat(Infinity);
   }
 
   function populationsAtLevel(population, n) {
