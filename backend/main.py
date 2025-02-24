@@ -142,6 +142,7 @@ def get_data_quantitative(query_params: QueryParams):
         results = counts_for_label(
             query_params.test_name,
             'all',
+            '',
             None,
             list(params.keys()),
             params,
@@ -155,6 +156,7 @@ def get_data_discrete(query_params: QueryParams):
     with eng.connect() as con:
         results = counts_for_label(query_params.test_name,
                                    'all',
+                                   '',
                                    None,
                                    list(params.keys()),
                                    params,
@@ -162,8 +164,8 @@ def get_data_discrete(query_params: QueryParams):
                                    'results_public')
     return results
 
-def counts_for_label(dx, label, where, remaining_keys, params, con, table_name):
-    result = {"label": label, 'dx': dx, 'type': 'counts', 'data': []}
+def counts_for_label(dx, label, label_value, where, remaining_keys, params, con, table_name):
+    result = {"label": label, 'query': label_value, 'dx': dx, 'type': 'counts', 'data': []}
     if remaining_keys:
         key = remaining_keys[0]
         levels = params[key]
@@ -178,6 +180,7 @@ def counts_for_label(dx, label, where, remaining_keys, params, con, table_name):
                 level_results = counts_for_label(
                     dx,
                     level.valueDisplayName,
+                    level.value,
                     new_where,
                     remaining_keys[1:],
                     params,
