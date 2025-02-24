@@ -4,7 +4,6 @@
   import { URLforEndpoint } from "./fetching.js";
   import LabMenuBanner from "./LabMenuBanner.svelte";
   import BarGraph from "./BarGraph.svelte";
-  import Histogram from "./Histogram.svelte";
   import VariablesPicker from "./VariablesPicker.svelte";
 
   let isLoading = true;
@@ -98,28 +97,39 @@
 
   async function doQuery(variablesDataStructure, dx) {
     isLoading = true;
-    let url = URLforEndpoint("data");
-    url += "/labbrowser";
 
     if (!variablesDataStructure) return;
-    let params = {};
+
+    // Identify which variables have any levels checked
+    let parameter_variables = [];
     for (let item of variablesDataStructure.items) {
       for (let subItem of item.splits) {
         if (subItem.checked) {
-          if (!params.hasOwnProperty(item.id)) {
-            params[item.id] = [];
-          }
+          parameter_variables.push(item);
+	  break;
+	}
+      }
+   }
+    
+    let params = {};
+    for (let item of parameter_variables) {
+      params[item.id] = [];
+    }
+
+    for (let item of parameter_variables) {
+      for (let subItem of item.splits) {
+        if (subItem.checked) {
           params[item.id].push(subItem.value);
         }
       }
     }
 
+    let url = URLforEndpoint("data") + "/labbrowser";
     let query_params = {
       test_name: dx,
       params: params,
     };
     /* actually fetch data */
-    console.log(url);
     let response = await fetch(url, {
       method: "POST",
       body: JSON.stringify(query_params),
