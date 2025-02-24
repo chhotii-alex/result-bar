@@ -1,2 +1,3 @@
 * if group size too small, merge with parent group
+* swap x-axes top/bottom
 * some things look cramped in layout of BarGraph

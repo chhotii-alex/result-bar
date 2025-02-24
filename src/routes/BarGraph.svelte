@@ -82,6 +82,8 @@
   }
 
   function hasAnyHistograms(population) {
+    if (!population) return false;
+    if (!population.data) return false;
     if (typeof population.data == "number") {
       if (population.histogram) return true;
     }
@@ -310,7 +312,7 @@
                   stroke="black"
                 />
               {/if}
-              {#if pop.data > 0 && pop.ci_low !== undefined}
+              {#if pop.data && (pop.data > 0) && (pop.ci_low !== undefined)}
                 <text
                   x={Math.max(
                     Math.min(
@@ -416,7 +418,11 @@
         >M {longestLevel_4}
       </text>
       <text x="-1000" y="-1000" bind:this={strSizer_total}>
-        {maxTotal.toLocaleString()}
+        {#if maxTotal}
+	        {maxTotal.toLocaleString()}
+	{:else}
+		0
+	{/if}
       </text>
     </svg>
   {/if}

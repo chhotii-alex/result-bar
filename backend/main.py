@@ -130,6 +130,7 @@ def get_variables():
 
 @app.post("/data/labbrowser")
 def get_data(query_params: QueryParams):
+    pp(query_params.params)
     if get_test_list()[query_params.test_name] == 'results':
         return get_data_discrete(query_params)
     else:
@@ -206,11 +207,13 @@ def counts_for_label(dx, label, where, remaining_keys, params, con, table_name):
                 query = """SELECT count(*) from %s
                 WHERE dx = '%s'
                 AND %s""" % (table_name, dx, new_where)
+                print(query)
                 count = con.execute(text(query)).scalar_one()
             else:
                 query = """SELECT result_value_log10 from %s
                   WHERE dx = '%s'
                   AND %s""" % (table_name, dx, new_where)
+                print(query)
                 with con.execution_options(stream_results=True,
                                             max_row_buffer=100).execute(
                                                 text(query)) as r:
