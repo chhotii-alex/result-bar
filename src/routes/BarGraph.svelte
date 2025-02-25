@@ -393,8 +393,8 @@
           </text>
         {/if}
       {/each}
-      <g class="x-axis" transform="translate(0, -35)" overflow="visible">
-        <line x1={barX(0)} x2={barX(1)} y1="33" y2="33" stroke="black" />
+      <g class="x-axis" transform={`translate(0, ${height+2})`} overflow="visible">
+        <line x1={barX(0)} x2={barX(1)} y1="0" y2="0" stroke="black" />
         {#each [0.0, 0.2, 0.4, 0.6, 0.8, 1.0] as tick}
           <g class="tick" transform={`translate(${barX(tick)},0)`}>
             <foreignObject width="2.5em" height="2em" x="-0.5em" y="0.5em">
@@ -402,21 +402,21 @@
                 {Math.round(tick * 100)}%
               </div>
             </foreignObject>
-            <line x1="0" x2="0" y1="33" y2="28" stroke="black" />
+            <line x1="0" x2="0" y1="0" y2="5" stroke="black" />
           </g>
         {/each}
       </g>
       {#if hasHistograms}
-        <g class="x-axis" transform={`translate(0, ${height})`}>
-          <line x1={barX(0)} x2={barX(1)} y1="0" y2="0" stroke="black" />
+        <g class="x-axis" transform={`translate(0, -40)`}>
+          <line x1={barX(0)} x2={barX(1)} y1="33" y2="33" stroke="black" />
           {#each [0, 3, 6, 9] as tick}
             <g class="tick" transform={`translate(${histogramX(tick)},0)`}>
-              <foreignObject width="2em" height="2em" x="-1em" y="0.5em">
+              <foreignObject width="2em" height="2em" x="-0.5em" y="0.25em">
                 <div class="exponentlabel">
                   10<sup>{tick}</sup>
                 </div>
               </foreignObject>
-              <line x1="0" x2="0" y1="0" y2="5" stroke="black" />
+              <line x1="0" x2="0" y1="33" y2="28" stroke="black" />
             </g>
           {/each}
         </g>
