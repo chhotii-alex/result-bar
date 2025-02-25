@@ -163,6 +163,14 @@
     return findPopulations(population).filter((pop) => pop.level == n);
   }
 
+  function populationsWithGroupTotals(population) {
+    return findPopulations(population).filter((pop) => pop.showTotal);
+  }     
+
+  function populationsWithDetail(population) {
+    return findPopulations(population).filter((pop) => pop.isLeaf);
+  }     
+
   function longestStringAtLevel(population, n) {
     let winner = "";
     let pops = populationsAtLevel(population, n);
@@ -178,14 +186,16 @@
   $: longestLevel_2 = longestStringAtLevel(aData, 2);
   $: longestLevel_3 = longestStringAtLevel(aData, 3);
   $: longestLevel_4 = longestStringAtLevel(aData, 4);
+  $: longestLevel_5 = longestStringAtLevel(aData, 5);
 
   let strSizer_1;
   let strSizer_2;
   let strSizer_3;
   let strSizer_4;
+  let strSizer_5;
   let strSizer_total;
 
-  let bb_1, bb_2, bb_3, bb_4, bb_total;
+  let bb_1, bb_2, bb_3, bb_4, bb_5,bb_total;
   let labelAreaWidth = 0;
   let total_nums_width = 0;
 
@@ -195,8 +205,9 @@
       bb_2 = strSizer_2?.getBBox();
       bb_3 = strSizer_3?.getBBox();
       bb_4 = strSizer_4?.getBBox();
+      bb_5 = strSizer_5?.getBBox();
       bb_total = strSizer_total?.getBBox();
-      labelAreaWidth = getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4);
+      labelAreaWidth = getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4, bb_5);
       total_nums_width = bb_total ? bb_total.width : 0;
     });
   }
@@ -205,10 +216,11 @@
     longestLevel_1,
     longestLevel_2,
     longestLevel_3,
-    longestLevel_4
+    longestLevel_4,
+    longestLevel_5,    
   );
 
-  function getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4) {
+  function getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4, bb_5) {
     let sum = 0;
     if (bb_1 !== undefined) {
       sum += bb_1.width;
@@ -220,6 +232,9 @@
       sum += bb_3.width;
     }
     if (bb_4 !== undefined) {
+      sum += bb_4.width;
+    }
+    if (bb_5 !== undefined) {
       sum += bb_4.width;
     }
     return sum;
@@ -251,6 +266,9 @@
     if (!width) return 0;
     if (bb_4 === undefined) return 0;
     let total = 0; //-(bb_1.width);
+    if (pop.level >= 5) {
+      total += bb_5.width;
+    }
     if (pop.level >= 4) {
       total += bb_4.width;
     }
@@ -284,7 +302,7 @@
       <g>
         {#if height > 20}
           <text x={barX(0) - total_nums_width} y="0"> total n </text>
-	  {#each populationsAtLevel(aData, levels-1) as pop}
+	  {#each populationsWithGroupTotals(aData) as pop}
             {#if pop.total}
               <text
                 x={barX(0) - total_nums_width}
@@ -294,7 +312,7 @@
               </text>
             {/if}
 	  {/each}
-          {#each populationsAtLevel(aData, levels) as pop}
+          {#each populationsWithDetail(aData) as pop}
             {#if pop.type == "counts"}
               <rect
                 x={barX(0)}
@@ -347,21 +365,21 @@
               x2={labelX(pop, labelAreaWidth) + 4}
               y1={popY(pop.yPlace(0.03))}
               y2={popY(pop.yPlace(0.97))}
-              stroke="black"
+              stroke="grey"
             />
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 14}
               y1={popY(pop.yPlace(0.03))}
               y2={popY(pop.yPlace(0.03))}
-              stroke="black"
+              stroke="grey"
             />
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 14}
               y1={popY(pop.yPlace(0.97))}
               y2={popY(pop.yPlace(0.97))}
-              stroke="black"
+              stroke="grey"
             />
           {/if}
         {/if}
@@ -416,6 +434,9 @@
       </text>
       <text x="-1000" y="-1000" bind:this={strSizer_4}
         >M {longestLevel_4}
+      </text>
+      <text x="-1000" y="-1000" bind:this={strSizer_5}
+        >M {longestLevel_5}
       </text>
       <text x="-1000" y="-1000" bind:this={strSizer_total}>
         {#if maxTotal}

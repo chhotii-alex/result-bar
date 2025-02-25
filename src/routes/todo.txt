@@ -1,3 +1,6 @@
-* if group size too small, merge with parent group
 * swap x-axes top/bottom
+* size BarGraph to fit data vertically
+* no brackets around positive, negative, distribution labels
+* positive/negative labels right by bars and group totals to left of that
 * some things look cramped in layout of BarGraph
+* some n's on bars in strange places

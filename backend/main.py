@@ -128,16 +128,104 @@ def get_variables():
         "items" : cached_vars
     }
 
+def make_feature_col_name(key, value):
+    s = "%s_%s" % (key, value)
+    return s.lower()
+
 @app.post("/data/labbrowser")
+def get_data_heirarchical(query_params: QueryParams):
+    params = query_params.params
+    pp(query_params.params)
+    where_clause = "dx = '%s' " % query_params.test_name
+    if get_test_list()[query_params.test_name] == 'results':
+        table_name = 'results_public'
+        where_clause += "AND result in ('positive', 'negative') "
+        columns = ['result']
+    else:
+        table_name = 'quantresults_public'
+        columns = ['result_value_num', 'result_value_log10']
+    for key in list(params.keys()):
+        levels = params[key]
+        querying_all_levels = True
+        for level in splits[key].splits:
+            if level.value in levels:
+                feature_col = make_feature_col_name(key, level.value)
+                sql_col = '(%s) %s' % (level.whereClause, feature_col)
+                columns.append(sql_col)
+            else:
+                querying_all_levels = False
+        if not querying_all_levels:
+            where_clause_fragments = [("(%s)" % level.whereClause) for level in splits[key].splits if level.value in levels]
+            where_clause_frag = " OR ".join(where_clause_fragments)
+            where_clause = "(%s) AND %s" (where_clause_frag, where_clause)
+    columns = ", ".join(columns)
+    query = """SELECT %s from %s WHERE %s""" % (columns, table_name, where_clause)
+    df = pd.read_sql(query, eng)
+    results = dice_results(query_params.test_name, df, 'all', '', list(params.keys()), params, table_name == 'quantresults_public')
+    return results
+
+small_group_cutoff = 10
+
+def dice_results(test_name, df, label, label_value, remaining_keys, params, is_quantitative):
+    results = {'dx': test_name,
+               'label': label,
+               'query': label_value,
+               'total': df.shape[0],
+               'type': 'counts'}
+    if df.shape[0] >= small_group_cutoff and remaining_keys:
+        do_split = True
+        data = []
+        key = remaining_keys[0]
+        levels = params[key]
+        for level in splits[key].splits:
+            if level.value in levels:
+                feature_col = make_feature_col_name(key, level.value)
+                split_count = df[feature_col].sum()
+                if split_count < small_group_cutoff:
+                    do_split = False
+                    break
+                data.append(dice_results(test_name, df[df[feature_col] == True],
+                                         level.valueDisplayName, level.value, remaining_keys[1:], params, is_quantitative))
+    else:
+        do_split = False
+    if not do_split:
+        results['showTotal'] = True
+        data = []
+        for result in ['positive', 'negative']:
+            results_split = {'dx': test_name,
+                             'label': result,
+                             'total': df.shape[0],
+                             'type': 'counts',
+                             'isLeaf': True,
+                            }
+            if is_quantitative:
+                if result == 'positive':
+                    conditional = df['result_value_num'] > 0.0
+                    results_split['type'] = 'histogram'
+                    results_split['histogram'] = histogram(df.loc[conditional, 'result_value_log10'])
+                else:
+                    conditional = df['result_value_num'] == 0.0
+            else:
+                conditional = df['result'] == result
+            count = conditional.sum()
+            results_split['data'] = int(count)
+            if count > 0:
+                stat_result = binomtest(k=count, n=df.shape[0], p=0.1)
+                ci = stat_result.proportion_ci()
+                results_split['ci_low'] = ci.low
+                results_split['ci_high'] = ci.high
+            data.append(results_split)
+    results['data'] = data
+    return results
+    
+@app.post("/data/labbrowser2")
 def get_data(query_params: QueryParams):
     pp(query_params.params)
-    if get_test_list()[query_params.test_name] == 'results':
-        return get_data_discrete(query_params)
-    else:
-        return get_data_quantitative(query_params)
-
-def get_data_quantitative(query_params: QueryParams):
     params = query_params.params
+    if get_test_list()[query_params.test_name] == 'results':
+        table_name = 'results_public'
+    else:
+        table_name = 'quantresults_public'
     with eng.connect() as con:
         results = counts_for_label(
             query_params.test_name,
@@ -147,21 +235,8 @@ def get_data_quantitative(query_params: QueryParams):
             list(params.keys()),
             params,
             con,
-            'quantresults_public'
+            table_name
         )
-    return results
-    
-def get_data_discrete(query_params: QueryParams):
-    params = query_params.params
-    with eng.connect() as con:
-        results = counts_for_label(query_params.test_name,
-                                   'all',
-                                   '',
-                                   None,
-                                   list(params.keys()),
-                                   params,
-                                   con,
-                                   'results_public')
     return results
 
 def counts_for_label(dx, label, label_value, where, remaining_keys, params, con, table_name):
