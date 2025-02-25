@@ -210,7 +210,7 @@ def dice_results(test_name, df, label, label_value, remaining_keys, params, is_q
                 conditional = df['result'] == result
             count = conditional.sum()
             results_split['data'] = int(count)
-            if count > 0:
+            if df.shape[0] > 0:
                 stat_result = binomtest(k=count, n=df.shape[0], p=0.1)
                 ci = stat_result.proportion_ci()
                 results_split['ci_low'] = ci.low

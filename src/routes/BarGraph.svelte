@@ -280,6 +280,8 @@
 
     return total;
   }
+
+  $: minHeight = 4*(findPopulations(aData).length + 2) + "vh";
 </script>
 
 <h3>
@@ -290,12 +292,10 @@
   class="sizer"
   bind:clientWidth={width}
   bind:clientHeight={height}
-  height={10*(findPopulations(aData).length + 2) + "vh" }
   width="80vw"
 >
   {#if width && aData}
-    <svg width="100%" height={4*(findPopulations(aData).length + 2) + "vh" }
-    >
+    <svg width="100%" height={minHeight} >
       <g>
         {#if height > 20}
           <text x={barX(0) - total_nums_width} y="0"> total n </text>
@@ -313,12 +313,12 @@
             {#if (pop.type == "counts")}
               <rect
                 x={barX(0)}
-                width={barX(pop.xScale(pop.data)) - barX(0)}
+                width={0.5 + barX(pop.xScale(pop.data)) - barX(0)}
                 y={popY(pop.yPlace(0.05))}
                 height={popY(pop.yPlace(0.95)) - popY(pop.yPlace(0.05))}
                 fill={pop.color}
               />
-              {#if pop.ci_low && pop.ci_high}
+              {#if (pop.ci_low !== undefined) && (pop.ci_high !== undefined) }
                 <line
                   x1={barX(pop.xScale(pop.ci_low * pop.total))}
                   x2={barX(pop.xScale(pop.ci_high * pop.total))}
@@ -327,7 +327,7 @@
                   stroke="black"
                 />
               {/if}
-              {#if pop.data && (pop.data > 0) && (pop.ci_low !== undefined)}
+              {#if (pop.ci_low !== undefined)}
                 <text
                   x={Math.max(
                     Math.min(
