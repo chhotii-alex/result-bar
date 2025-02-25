@@ -294,11 +294,12 @@
   class="sizer"
   bind:clientWidth={width}
   bind:clientHeight={height}
-  height="60vh"
+  height={10*(findPopulations(aData).length + 2) + "vh" }
   width="80vw"
 >
   {#if width && numbers}
-    <svg width="100%" height="60vh">
+    <svg width="100%" height={4*(findPopulations(aData).length + 2) + "vh" }
+    >
       <g>
         {#if height > 20}
           <text x={barX(0) - total_nums_width} y="0"> total n </text>

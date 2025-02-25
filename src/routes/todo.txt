@@ -1,5 +1,8 @@
+* test all groups
 * size BarGraph to fit data vertically
 * no brackets around positive, negative, distribution labels
 * positive/negative labels right by bars and group totals to left of that
 * some things look cramped in layout of BarGraph
+* re-order groups?
 * some n's on bars in strange places
+* closing the group picker?

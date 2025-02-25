@@ -157,7 +157,7 @@ def get_data_heirarchical(query_params: QueryParams):
         if not querying_all_levels:
             where_clause_fragments = [("(%s)" % level.whereClause) for level in splits[key].splits if level.value in levels]
             where_clause_frag = " OR ".join(where_clause_fragments)
-            where_clause = "(%s) AND %s" (where_clause_frag, where_clause)
+            where_clause = "(%s) AND %s" % (where_clause_frag, where_clause)
     columns = ", ".join(columns)
     query = """SELECT %s from %s WHERE %s""" % (columns, table_name, where_clause)
     df = pd.read_sql(query, eng)
@@ -181,6 +181,7 @@ def dice_results(test_name, df, label, label_value, remaining_keys, params, is_q
             if level.value in levels:
                 feature_col = make_feature_col_name(key, level.value)
                 split_count = df[feature_col].sum()
+                assert df[feature_col].sum() == df[df[feature_col] == True].shape[0]
                 if split_count < small_group_cutoff:
                     do_split = False
                     break
