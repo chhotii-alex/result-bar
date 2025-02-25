@@ -53,7 +53,6 @@
     population.yPlace = scaleLinear().domain([0, 1]).range([minDim, maxDim]);
     population.level = level;
     population.color = getNextColor();
-    if (population.data) {
       if (typeof population.data == "number") {
         population.xScale = scaleLinear().domain([0, population.total]).range([0, 1]);
 	if (population.histogram) {
@@ -77,7 +76,6 @@
 	  pointsSoFar += widthPointsForPop(population.data[i]);
         }
       }
-    }
     return population;
   }
 
@@ -138,7 +136,6 @@
   function findPopulations(population) {
     let a = [];
     if (!population) return a;
-    if (population.data) {
       if (typeof population.data != "number") {
         a = population.data.map((pop) => findPopulations(pop));
       }
@@ -155,7 +152,6 @@
       else {
          a.push(population);
       }
-    }
     return a.flat(Infinity);
   }
 
@@ -297,7 +293,7 @@
   height={10*(findPopulations(aData).length + 2) + "vh" }
   width="80vw"
 >
-  {#if width && numbers}
+  {#if width && aData}
     <svg width="100%" height={4*(findPopulations(aData).length + 2) + "vh" }
     >
       <g>
@@ -314,7 +310,7 @@
             {/if}
 	  {/each}
           {#each populationsWithDetail(aData) as pop}
-            {#if pop.type == "counts"}
+            {#if (pop.type == "counts")}
               <rect
                 x={barX(0)}
                 width={barX(pop.xScale(pop.data)) - barX(0)}
@@ -344,7 +340,7 @@
                   text-anchor="end">{pop.data.toLocaleString()}</text
                 >
               {/if}
-            {:else if pop.type == "histogram"}
+            {:else if (pop.type == "histogram") && pop.histogram}
               <path
                 d={line()
                   .curve(curveBumpX)

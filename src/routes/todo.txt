@@ -1,8 +1,10 @@
-* test all groups
-* size BarGraph to fit data vertically
+* DRY: extract div height to variable
+* can do C.I. for count = 0, obverse of count = 100% ?
+* can we do arrays for label widths?
 * no brackets around positive, negative, distribution labels
 * positive/negative labels right by bars and group totals to left of that
 * some things look cramped in layout of BarGraph
+* enforce minimum width to avoid negative-width rect
 * re-order groups?
 * some n's on bars in strange places
 * closing the group picker?

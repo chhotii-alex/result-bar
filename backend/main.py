@@ -332,6 +332,8 @@ def kernel_density(data, start=0.0, stop=11.0):
     return r
 
 def histogram(data):
+    if not len(data):
+        return None
     density = kernel_density(data, start=0.0, stop=10.0)
     densityBinWidth = density[2][0] - density[1][0]
     halfBin = densityBinWidth/2
