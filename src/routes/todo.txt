@@ -1,3 +1,2 @@
 * synthetic data
 * media queries for various window sizes
-* non-disgusting colors

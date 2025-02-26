@@ -7,7 +7,7 @@
   }
 
   function clicky() {
-    exploreGroupsOpen = false;  
+    exploreGroupsOpen = false;
   }
 </script>
 
@@ -41,16 +41,32 @@
     </svg>
   </legend>
   {#if exploreGroupsOpen}
-  <div class="closeButton" ><button on:click={clicky}>
-    <svg width=30 height=30 overflow="visible" >
-      <line x1="0" x2="30" y1="0" y2="30" stroke="black" stroke-width="2"/>
-      <line x1="0" x2="30" y1="30" y2="0" stroke="black" stroke-width="2"/>
-      <line x1="0" x2="0" y1="30" y2="0" stroke="black" stroke-width="2"/>
-      <line x1="30" x2="30" y1="30" y2="0" stroke="black" stroke-width="2"/>
-      <line x1="0" x2="30" y1="0" y2="0" stroke="black" stroke-width="2"/>
-      <line x1="0" x2="30" y1="30" y2="30" stroke="black" stroke-width="2"/>
-    </svg>
-  </button></div>
+    <div class="closeButton">
+      <button on:click={clicky}>
+        <svg width="30" height="30" overflow="visible">
+          <line x1="0" x2="30" y1="0" y2="30" stroke="black" stroke-width="2" />
+          <line x1="0" x2="30" y1="30" y2="0" stroke="black" stroke-width="2" />
+          <line x1="0" x2="0" y1="30" y2="0" stroke="black" stroke-width="2" />
+          <line
+            x1="30"
+            x2="30"
+            y1="30"
+            y2="0"
+            stroke="black"
+            stroke-width="2"
+          />
+          <line x1="0" x2="30" y1="0" y2="0" stroke="black" stroke-width="2" />
+          <line
+            x1="0"
+            x2="30"
+            y1="30"
+            y2="30"
+            stroke="black"
+            stroke-width="2"
+          />
+        </svg>
+      </button>
+    </div>
   {/if}
   <div id="select_var" class="select_var" class:exploreGroupsOpen>
     <slot />
@@ -64,8 +80,8 @@
     border: none;
     position: sticky;
     top: 60px;
-    width:max-content;
-    margin-left:auto;
+    width: max-content;
+    margin-left: auto;
   }
   button {
     border: none;

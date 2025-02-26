@@ -4,35 +4,6 @@
   import { line, curveBumpX } from "d3-shape";
   export let numbers;
 
-  let colorNames = [
-    "Crimson",
-    "DeepPink",
-    "Coral",
-    "Magenta",
-    "Chartreuse",
-    "DarkOliveGreen",
-    "PaleTurquoise",
-    "RoyalBlue",
-    "Sienna",
-    "DarkSlateGray",
-    "Chocolate",
-    "DarkBlue",
-    "DarkGreen",
-    "DarkSalmon",
-    "DarkViolet",
-    "ForestGreen",
-    "Fuchsia",
-    "Gold",
-  ];
-  let colorIterator = 0;
-
-  function getNextColor() {
-    let a = colorNames[colorIterator];
-    colorIterator += 1;
-    colorIterator = colorIterator % colorNames.length;
-    return a;
-  }
-
   let width;
   let height;
 
@@ -52,7 +23,11 @@
     population.maxDim = maxDim;
     population.yPlace = scaleLinear().domain([0, 1]).range([minDim, maxDim]);
     population.level = level;
-    population.color = getNextColor();
+    if (population.label == "positive") {
+      population.color = "Tomato";
+    } else {
+      population.color = "DodgerBlue";
+    }
     if (typeof population.data == "number") {
       population.xScale = scaleLinear()
         .domain([0, population.total])
