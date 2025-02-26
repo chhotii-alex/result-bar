@@ -157,7 +157,6 @@
       let distribution = {
         ...population,
         label: "distribution",
-        color: getNextColor(),
         maxDim: divide,
       };
       posBar.yPlace = scaleLinear()
