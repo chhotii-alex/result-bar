@@ -4,3 +4,4 @@ build
 node_modules
 connect.py
 __pycache__
+*~

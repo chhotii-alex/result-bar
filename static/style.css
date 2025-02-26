@@ -116,9 +116,6 @@ p.body_text {
   margin-right: auto;
   /* margin: 1em auto 2em; */
 }
-#select_var {
-  columns: 4;
-}
 .group_variable_div {
   padding-top: 20px;
   padding-right: 10px;
@@ -130,9 +127,6 @@ p.body_text {
   padding: 0.75em;
   border: 2px solid;
   background-color: #eee;
-}
-#select_var > div {
-  break-inside: avoid-column;
 }
 
 .max80em {
@@ -427,24 +421,6 @@ footer {
   max-width: 46em;
   margin: auto;
   padding-bottom: 10em;
-}
-
-@media only screen and (max-width: 1200px) {
-  #select_var {
-    columns: 3;
-  }
-}
-
-@media only screen and (max-width: 900px) {
-  #select_var {
-    columns: 2;
-  }
-}
-
-@media only screen and (max-width: 600px) {
-  #select_var {
-    columns: 1;
-  }
 }
 
 .conclusiontext {

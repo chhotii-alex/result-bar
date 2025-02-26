@@ -4,6 +4,7 @@
   import { URLforEndpoint } from "./fetching.js";
   import LabMenuBanner from "./LabMenuBanner.svelte";
   import BarGraph from "./BarGraph.svelte";
+  import DxTestPicker from "./DxTestPicker.svelte";
   import VariablesPicker from "./VariablesPicker.svelte";
 
   let isLoading = true;
@@ -171,13 +172,7 @@
   </h1>
 {:else}
   <div class="pickers">
-    {#if dxList}
-      <select name="dx" id="dx" bind:value={selectedDx}>
-        {#each dxList as dx}
-          <option value={dx}>{dx} </option>
-        {/each}
-      </select>
-    {/if}
+    <DxTestPicker bind:dxList bind:selectedDx />
 
     <VariablesPicker bind:variablesDataStructure />
   </div>
@@ -228,6 +223,7 @@
     flex-direction: row; /* default */
     justify-content: center;
     align-items: center; /* center items vertically */
+    max-width: 60em;
   }
 
   div.bar {
