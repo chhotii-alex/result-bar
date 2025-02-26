@@ -10,6 +10,41 @@
   }
 
   let exploreGroupsOpen = false;
+
+  /* re-order variables */
+  function drag(ev) {
+    let id = ev.target.id.substring(4);
+    ev.dataTransfer.setData("text", id);
+  }
+
+  function allowDrop(ev) {
+    ev.preventDefault();
+  }
+
+  function drop(ev) {
+    ev.preventDefault();
+    let fromID = ev.dataTransfer.getData("text");
+    let target = ev.target;
+    while (!target.id || target.tagName != "DIV") {
+      target = target.parentElement;
+      if (!target) {
+        return;
+      }
+    }
+    let toID = target.id.substring(4);
+    if (toID == fromID) return;
+    swap(toID, fromID);
+  }
+
+  function swap(toID, fromID) {
+    let toIndex = variablesDataStructure.items.findIndex(t => t.id == toID);
+    if (toIndex < 0) return;
+    let fromIndex = variablesDataStructure.items.findIndex(t => t.id == fromID);
+    if (fromIndex < 0) return;
+    let movedItem = variablesDataStructure.items.splice(fromIndex, 1)[0];
+    variablesDataStructure.items.splice(toIndex, 0, movedItem);
+    variablesDataStructure = variablesDataStructure;
+  }
 </script>
 
 <FancyFieldset bind:exploreGroupsOpen label="Explore Groups">
@@ -22,7 +57,13 @@
     </div>
     {#if variablesDataStructure}
       {#each variablesDataStructure.items as item (item.id)}
-        <div class="group_variable_div">
+        <div class="group_variable_div"
+	  id={`div_${item.id}`}
+	  draggable="true"
+	  on:dragstart={drag}
+	  on:dragover={allowDrop}
+	  on:drop={drop}
+	>
           <input
             type="checkbox"
             id={item.id}

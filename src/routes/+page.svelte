@@ -124,6 +124,7 @@
         }
       }
     }
+    console.log("Doing query: ", params);
 
     let url = URLforEndpoint("data") + "/labbrowser";
     let query_params = {

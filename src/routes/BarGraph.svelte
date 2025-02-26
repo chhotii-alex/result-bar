@@ -287,10 +287,10 @@
   bind:clientHeight={height}
   width="80vw"
   style={`min-width:${labelAreaWidth+2*total_nums_width+100}px`}
-
 >
   {#if width && aData}
-    <svg width="100%" height={minHeight}>
+    <svg width="100%"
+      height={minHeight}> 
       <g>
         {#if height > 20}
           <text x={width} y="0" text-anchor="end"> total n </text>
@@ -350,22 +350,22 @@
         {#if !pop.isLeaf}
           {#if true}
             <line
-              x1={labelX(pop, labelAreaWidth) + 4}
-              x2={labelX(pop, labelAreaWidth) + 4}
+              x1={labelX(pop, bboxArray) + 4}
+              x2={labelX(pop, bboxArray) + 4}
               y1={popY(pop.yPlace(0.03))}
               y2={popY(pop.yPlace(0.97))}
               stroke="grey"
             />
             <line
-              x1={labelX(pop, labelAreaWidth) + 4}
-              x2={labelX(pop, labelAreaWidth) + 14}
+              x1={labelX(pop, bboxArray) + 4}
+              x2={labelX(pop, bboxArray) + 14}
               y1={popY(pop.yPlace(0.03))}
               y2={popY(pop.yPlace(0.03))}
               stroke="grey"
             />
             <line
-              x1={labelX(pop, labelAreaWidth) + 4}
-              x2={labelX(pop, labelAreaWidth) + 14}
+              x1={labelX(pop, bboxArray) + 4}
+              x2={labelX(pop, bboxArray) + 14}
               y1={popY(pop.yPlace(0.97))}
               y2={popY(pop.yPlace(0.97))}
               stroke="grey"
@@ -374,7 +374,7 @@
         {/if}
         {#if true}
           <text
-            x={labelX(pop, labelAreaWidth)}
+            x={labelX(pop, bboxArray)}
             y={popY(pop.yPlace(0.5)) + 5}
             text-anchor="end"
           >
