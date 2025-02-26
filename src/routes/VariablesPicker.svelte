@@ -37,9 +37,11 @@
   }
 
   function swap(toID, fromID) {
-    let toIndex = variablesDataStructure.items.findIndex(t => t.id == toID);
+    let toIndex = variablesDataStructure.items.findIndex((t) => t.id == toID);
     if (toIndex < 0) return;
-    let fromIndex = variablesDataStructure.items.findIndex(t => t.id == fromID);
+    let fromIndex = variablesDataStructure.items.findIndex(
+      (t) => t.id == fromID
+    );
     if (fromIndex < 0) return;
     let movedItem = variablesDataStructure.items.splice(fromIndex, 1)[0];
     variablesDataStructure.items.splice(toIndex, 0, movedItem);
@@ -57,13 +59,14 @@
     </div>
     {#if variablesDataStructure}
       {#each variablesDataStructure.items as item (item.id)}
-        <div class="group_variable_div"
-	  id={`div_${item.id}`}
-	  draggable="true"
-	  on:dragstart={drag}
-	  on:dragover={allowDrop}
-	  on:drop={drop}
-	>
+        <div
+          class="group_variable_div"
+          id={`div_${item.id}`}
+          draggable="true"
+          on:dragstart={drag}
+          on:dragover={allowDrop}
+          on:drop={drop}
+        >
           <input
             type="checkbox"
             id={item.id}

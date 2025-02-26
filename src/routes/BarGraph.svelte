@@ -286,14 +286,15 @@
   bind:clientWidth={width}
   bind:clientHeight={height}
   width="80vw"
-  style={`min-width:${labelAreaWidth+2*total_nums_width+100}px`}
+  style={`min-width:${labelAreaWidth + 2 * total_nums_width + 100}px`}
 >
   {#if width && aData}
-    <svg width="100%"
-      height={minHeight}> 
+    <svg width="100%" height={minHeight}>
       <g>
         {#if height > 20}
-          <text x={width} y="0" text-anchor="end"> total n </text>
+          <text x={width} y="0" text-anchor="end" class="bolded">
+            total n
+          </text>
           {#each populationsWithGroupTotals(aData) as pop}
             {#if pop.total}
               <text text-anchor="end" x={width} y={popY(pop.yPlace(0.5)) + 5}>
@@ -449,5 +450,8 @@
     position: relative;
     z-index: -1;
     overflow: visible;
+  }
+  .bolded {
+    font-weight: bold;
   }
 </style>
