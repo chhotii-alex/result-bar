@@ -286,6 +286,8 @@
   bind:clientWidth={width}
   bind:clientHeight={height}
   width="80vw"
+  style={`min-width:${labelAreaWidth+2*total_nums_width+100}px`}
+
 >
   {#if width && aData}
     <svg width="100%" height={minHeight}>

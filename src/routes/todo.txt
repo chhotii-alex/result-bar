@@ -1,4 +1,3 @@
-* enforce minimum width to avoid negative-width rect
 * re-order groups?
 * some n's on bars in strange places
 * closing the group picker?
