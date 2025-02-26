@@ -327,7 +327,7 @@
                       barX(pop.xScale(pop.data)) - 5,
                       barX(pop.xScale(pop.ci_low * pop.total)) - 2
                     ),
-                    barX(0) + 50
+                    barX(0) + 10
                   )}
                   y={popY(pop.yPlace(0.5)) + 5}
                   text-anchor="end">{pop.data.toLocaleString()}</text

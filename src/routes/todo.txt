@@ -1,4 +1,3 @@
-* some n's on bars in strange places
 * closing the group picker?
 * synthetic data
 * media queries for various window sizes
