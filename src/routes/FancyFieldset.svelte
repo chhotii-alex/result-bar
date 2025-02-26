@@ -6,22 +6,8 @@
     exploreGroupsOpen = !exploreGroupsOpen;
   }
 
-  function isDescendentOf(widget, tag, className) {
-    while (widget) {
-      if (widget.tagName == tag) {
-        if (widget.classList.contains(className)) {
-          return true;
-        }
-      }
-      widget = widget.parentNode;
-    }
-    return false;
-  }
-
-  function closeExploreGroups(event) {
-    if (isDescendentOf(event.target, "DIV", "select_var")) return;
-    if (isDescendentOf(event.target, "FIELDSET", "exploreGroupsOpen")) return;
-    exploreGroupsOpen = false;
+  function clicky() {
+    exploreGroupsOpen = false;  
   }
 </script>
 
@@ -31,7 +17,7 @@
     class="select_var_label"
     on:click={toggleGroupsOpen}
     >{label}
-    <svg height="20px" width="20px" overflow="visible">
+    <svg height="20px" width="20px" overflow="visible" class="toggle">
       <g transform="translate(4,8)">
         <line
           x1="0"
@@ -54,12 +40,36 @@
       </g>
     </svg>
   </legend>
+  {#if exploreGroupsOpen}
+  <div class="closeButton" ><button on:click={clicky}>
+    <svg width=30 height=30 overflow="visible" >
+      <line x1="0" x2="30" y1="0" y2="30" stroke="black" stroke-width="2"/>
+      <line x1="0" x2="30" y1="30" y2="0" stroke="black" stroke-width="2"/>
+      <line x1="0" x2="0" y1="30" y2="0" stroke="black" stroke-width="2"/>
+      <line x1="30" x2="30" y1="30" y2="0" stroke="black" stroke-width="2"/>
+      <line x1="0" x2="30" y1="0" y2="0" stroke="black" stroke-width="2"/>
+      <line x1="0" x2="30" y1="30" y2="30" stroke="black" stroke-width="2"/>
+    </svg>
+  </button></div>
+  {/if}
   <div id="select_var" class="select_var" class:exploreGroupsOpen>
     <slot />
   </div>
 </fieldset>
 
 <style>
+  .closeButton {
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    position: sticky;
+    top: 60px;
+    width:max-content;
+    margin-left:auto;
+  }
+  button {
+    border: none;
+  }
   fieldset {
     border: none;
     display: inline;
@@ -67,14 +77,15 @@
   }
   fieldset.exploreGroupsOpen {
     border: 2px solid;
+    padding-top: 0px;
     padding-left: 30px;
-    padding-right: 40px;
-    padding-bottom: 50px;
+    padding-right: 30px;
+    padding-bottom: 30px;
     background-color: #eee;
     margin: 3em;
     display: block;
   }
-  .exploreGroupsOpen svg {
+  .exploreGroupsOpen .toggle {
     transform: translateY(6px) translateX(6px) rotate(0.25turn);
   }
   /*  Toggle open/close behavior.
