@@ -1,4 +1,3 @@
-* doesn't react to change in height of bargraph
 * bold "total n"
 * some n's on bars in strange places
 * closing the group picker?

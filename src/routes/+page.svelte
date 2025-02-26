@@ -131,6 +131,7 @@
       test_name: dx,
       params: params,
     };
+    data = null;
     /* actually fetch data */
     let response = await fetch(url, {
       method: "POST",
