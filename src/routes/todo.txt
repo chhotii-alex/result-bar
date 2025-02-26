@@ -1,4 +1,4 @@
-* can we do arrays for label widths?
+* same color for distribution and positive bar
 * no brackets around positive, negative, distribution labels
 * positive/negative labels right by bars and group totals to left of that
 * some things look cramped in layout of BarGraph

@@ -4,10 +4,10 @@ The starter for the front-end code was the antigen-sensitivity front-end.
 
 The backend (server), in the `backend` directory, is implemented using FastAPI.
 See [the FastAPI tutorial](https://fastapi.tiangolo.com/tutorial/)
-It requires that you create a file named `connect.py` which declares the 
+It requires that you create a file named `connect.py` which declares the
 `ConnectionString` for the database.
 After creating `connect.py` and installing the Python dependencies, run the backend
-server by running: 
+server by running:
 `fastapi dev main.py`
 
 ## Development

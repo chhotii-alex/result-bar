@@ -106,11 +106,11 @@
       for (let subItem of item.splits) {
         if (subItem.checked) {
           parameter_variables.push(item);
-	  break;
-	}
+          break;
+        }
       }
-   }
-    
+    }
+
     let params = {};
     for (let item of parameter_variables) {
       params[item.id] = [];

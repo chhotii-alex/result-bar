@@ -53,29 +53,34 @@
     population.yPlace = scaleLinear().domain([0, 1]).range([minDim, maxDim]);
     population.level = level;
     population.color = getNextColor();
-      if (typeof population.data == "number") {
-        population.xScale = scaleLinear().domain([0, population.total]).range([0, 1]);
-	if (population.histogram) {
-	   let peak = findDensityPeak(population.histogram);
-	  population.histogramY = scaleLinear().domain([0, peak]).range([0.8, 0.05]);
-	}
-      } else {
-        let widthPoints = 0;
-        for (let i = 0; i < population.data.length; ++i) {
-	  widthPoints += widthPointsForPop(population.data[i]);
-	}
-        let childWidth = (maxDim - minDim) / widthPoints;
-	let pointsSoFar = 0;
-        for (let i = 0; i < population.data.length; ++i) {
-          markup(
-            population.data[i],
-            minDim + pointsSoFar * childWidth,
-            minDim + (pointsSoFar + widthPointsForPop(population.data[i])) * childWidth,
-            level + 1
-          );
-	  pointsSoFar += widthPointsForPop(population.data[i]);
-        }
+    if (typeof population.data == "number") {
+      population.xScale = scaleLinear()
+        .domain([0, population.total])
+        .range([0, 1]);
+      if (population.histogram) {
+        let peak = findDensityPeak(population.histogram);
+        population.histogramY = scaleLinear()
+          .domain([0, peak])
+          .range([0.8, 0.05]);
       }
+    } else {
+      let widthPoints = 0;
+      for (let i = 0; i < population.data.length; ++i) {
+        widthPoints += widthPointsForPop(population.data[i]);
+      }
+      let childWidth = (maxDim - minDim) / widthPoints;
+      let pointsSoFar = 0;
+      for (let i = 0; i < population.data.length; ++i) {
+        markup(
+          population.data[i],
+          minDim + pointsSoFar * childWidth,
+          minDim +
+            (pointsSoFar + widthPointsForPop(population.data[i])) * childWidth,
+          level + 1
+        );
+        pointsSoFar += widthPointsForPop(population.data[i]);
+      }
+    }
     return population;
   }
 
@@ -84,11 +89,10 @@
     if (!population.data) return false;
     if (typeof population.data == "number") {
       if (population.histogram) return true;
-    }
-    else {
-       for (let i = 0; i < population.data.length; ++i) {
-          if (hasAnyHistograms(population.data[i])) return true;
-       }
+    } else {
+      for (let i = 0; i < population.data.length; ++i) {
+        if (hasAnyHistograms(population.data[i])) return true;
+      }
     }
     return false;
   }
@@ -136,22 +140,37 @@
   function findPopulations(population) {
     let a = [];
     if (!population) return a;
-      if (typeof population.data != "number") {
-        a = population.data.map((pop) => findPopulations(pop));
-      }
-      if (population.histogram) {
-	let fraction = (widthPointsForPop(population)-1)/widthPointsForPop(population);
-	let divide = (fraction*(population.maxDim-population.minDim)+population.minDim);
-        let posBar = {...population, histogram:null, type:'counts', minDim:divide};
-	let distribution = {...population, label:'distribution', color:getNextColor(), maxDim:divide};
-	posBar.yPlace = scaleLinear().domain([0, 1]).range([posBar.minDim, posBar.maxDim]);
-	distribution.yPlace = scaleLinear().domain([0, 1]).range([distribution.minDim, distribution.maxDim]);
-	a.push(posBar);
-	a.push(distribution);
-      }
-      else {
-         a.push(population);
-      }
+    if (typeof population.data != "number") {
+      a = population.data.map((pop) => findPopulations(pop));
+    }
+    if (population.histogram) {
+      let fraction =
+        (widthPointsForPop(population) - 1) / widthPointsForPop(population);
+      let divide =
+        fraction * (population.maxDim - population.minDim) + population.minDim;
+      let posBar = {
+        ...population,
+        histogram: null,
+        type: "counts",
+        minDim: divide,
+      };
+      let distribution = {
+        ...population,
+        label: "distribution",
+        color: getNextColor(),
+        maxDim: divide,
+      };
+      posBar.yPlace = scaleLinear()
+        .domain([0, 1])
+        .range([posBar.minDim, posBar.maxDim]);
+      distribution.yPlace = scaleLinear()
+        .domain([0, 1])
+        .range([distribution.minDim, distribution.maxDim]);
+      a.push(posBar);
+      a.push(distribution);
+    } else {
+      a.push(population);
+    }
     return a.flat(Infinity);
   }
 
@@ -161,11 +180,11 @@
 
   function populationsWithGroupTotals(population) {
     return findPopulations(population).filter((pop) => pop.showTotal);
-  }     
+  }
 
   function populationsWithDetail(population) {
     return findPopulations(population).filter((pop) => pop.isLeaf);
-  }     
+  }
 
   function longestStringAtLevel(population, n) {
     let winner = "";
@@ -178,60 +197,45 @@
     return winner;
   }
 
-  $: longestLevel_1 = longestStringAtLevel(aData, 1);
-  $: longestLevel_2 = longestStringAtLevel(aData, 2);
-  $: longestLevel_3 = longestStringAtLevel(aData, 3);
-  $: longestLevel_4 = longestStringAtLevel(aData, 4);
-  $: longestLevel_5 = longestStringAtLevel(aData, 5);
+  function longestStringsAtLevels(population) {
+    let strings = [];
+    for (let i = 0; i <= findLevels(population); ++i) {
+      strings.push(longestStringAtLevel(population, i));
+    }
+    return strings;
+  }
 
-  let strSizer_1;
-  let strSizer_2;
-  let strSizer_3;
-  let strSizer_4;
-  let strSizer_5;
+  $: longestStrings = longestStringsAtLevels(aData);
+
+  let stringSizeWidgetArray = Array(50).fill(null);
+  let bboxArray = [];
   let strSizer_total;
-
-  let bb_1, bb_2, bb_3, bb_4, bb_5,bb_total;
+  let bb_total;
   let labelAreaWidth = 0;
   let total_nums_width = 0;
 
   function updateSizes() {
     tick().then(() => {
-      bb_1 = strSizer_1?.getBBox();
-      bb_2 = strSizer_2?.getBBox();
-      bb_3 = strSizer_3?.getBBox();
-      bb_4 = strSizer_4?.getBBox();
-      bb_5 = strSizer_5?.getBBox();
+      bboxArray = [];
+      for (let strSizer of stringSizeWidgetArray) {
+        if (strSizer) {
+          bboxArray.push(strSizer.getBBox());
+        }
+      }
       bb_total = strSizer_total?.getBBox();
-      labelAreaWidth = getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4, bb_5);
+      labelAreaWidth = getLabelAreaWidth();
       total_nums_width = bb_total ? bb_total.width : 0;
     });
   }
 
-  $: updateSizes(
-    longestLevel_1,
-    longestLevel_2,
-    longestLevel_3,
-    longestLevel_4,
-    longestLevel_5,    
-  );
+  $: updateSizes(longestStrings);
 
-  function getLabelAreaWidth(bb_1, bb_2, bb_3, bb_4, bb_5) {
+  function getLabelAreaWidth() {
     let sum = 0;
-    if (bb_1 !== undefined) {
-      sum += bb_1.width;
-    }
-    if (bb_2 !== undefined) {
-      sum += bb_2.width;
-    }
-    if (bb_3 !== undefined) {
-      sum += bb_3.width;
-    }
-    if (bb_4 !== undefined) {
-      sum += bb_4.width;
-    }
-    if (bb_5 !== undefined) {
-      sum += bb_4.width;
+    for (let box of bboxArray) {
+      if (box) {
+        sum += box.width;
+      }
     }
     return sum;
   }
@@ -260,28 +264,18 @@
 
   function labelX(pop) {
     if (!width) return 0;
-    if (bb_4 === undefined) return 0;
-    let total = 0; //-(bb_1.width);
-    if (pop.level >= 5) {
-      total += bb_5.width;
+    let total = 0;
+    for (let i = 0; i < bboxArray.length; ++i) {
+      if (pop.level >= i) {
+        if (bboxArray[i]) {
+          total += bboxArray[i].width;
+        }
+      }
     }
-    if (pop.level >= 4) {
-      total += bb_4.width;
-    }
-    if (pop.level >= 3) {
-      total += bb_3.width;
-    }
-    if (pop.level >= 2) {
-      total += bb_2.width;
-    }
-    if (pop.level >= 1) {
-      total += bb_1.width;
-    }
-
     return total;
   }
 
-  $: minHeight = 4*(findPopulations(aData).length + 2) + "vh";
+  $: minHeight = 4 * (findPopulations(aData).length + 2) + "vh";
 </script>
 
 <h3>
@@ -295,11 +289,11 @@
   width="80vw"
 >
   {#if width && aData}
-    <svg width="100%" height={minHeight} >
+    <svg width="100%" height={minHeight}>
       <g>
         {#if height > 20}
           <text x={barX(0) - total_nums_width} y="0"> total n </text>
-	  {#each populationsWithGroupTotals(aData) as pop}
+          {#each populationsWithGroupTotals(aData) as pop}
             {#if pop.total}
               <text
                 x={barX(0) - total_nums_width}
@@ -308,9 +302,9 @@
                 {pop.total.toLocaleString()}
               </text>
             {/if}
-	  {/each}
+          {/each}
           {#each populationsWithDetail(aData) as pop}
-            {#if (pop.type == "counts")}
+            {#if pop.type == "counts"}
               <rect
                 x={barX(0)}
                 width={0.5 + barX(pop.xScale(pop.data)) - barX(0)}
@@ -318,7 +312,7 @@
                 height={popY(pop.yPlace(0.95)) - popY(pop.yPlace(0.05))}
                 fill={pop.color}
               />
-              {#if (pop.ci_low !== undefined) && (pop.ci_high !== undefined) }
+              {#if pop.ci_low !== undefined && pop.ci_high !== undefined}
                 <line
                   x1={barX(pop.xScale(pop.ci_low * pop.total))}
                   x2={barX(pop.xScale(pop.ci_high * pop.total))}
@@ -327,7 +321,7 @@
                   stroke="black"
                 />
               {/if}
-              {#if (pop.ci_low !== undefined)}
+              {#if pop.ci_low !== undefined}
                 <text
                   x={Math.max(
                     Math.min(
@@ -340,7 +334,7 @@
                   text-anchor="end">{pop.data.toLocaleString()}</text
                 >
               {/if}
-            {:else if (pop.type == "histogram") && pop.histogram}
+            {:else if pop.type == "histogram" && pop.histogram}
               <path
                 d={line()
                   .curve(curveBumpX)
@@ -390,7 +384,11 @@
           </text>
         {/if}
       {/each}
-      <g class="x-axis" transform={`translate(0, ${height+2})`} overflow="visible">
+      <g
+        class="x-axis"
+        transform={`translate(0, ${height + 2})`}
+        overflow="visible"
+      >
         <line x1={barX(0)} x2={barX(1)} y1="0" y2="0" stroke="black" />
         {#each [0.0, 0.2, 0.4, 0.6, 0.8, 1.0] as tick}
           <g class="tick" transform={`translate(${barX(tick)},0)`}>
@@ -420,27 +418,17 @@
       {/if}
 
       <!-- Discreetly find out the text size of our labels -->
-      <text x="-1000" y="-1000" bind:this={strSizer_1}
-        >M {longestLevel_1}
-      </text>
-      <text x="-1000" y="-1000" bind:this={strSizer_2}
-        >M {longestLevel_2}
-      </text>
-      <text x="-1000" y="-1000" bind:this={strSizer_3}
-        >M {longestLevel_3}
-      </text>
-      <text x="-1000" y="-1000" bind:this={strSizer_4}
-        >M {longestLevel_4}
-      </text>
-      <text x="-1000" y="-1000" bind:this={strSizer_5}
-        >M {longestLevel_5}
-      </text>
+      {#each longestStrings as labelString, i}
+        <text x="-1000" y="-1000" bind:this={stringSizeWidgetArray[i]}>
+          M {labelString}
+        </text>
+      {/each}
       <text x="-1000" y="-1000" bind:this={strSizer_total}>
         {#if maxTotal}
-	        {maxTotal.toLocaleString()}
-	{:else}
-		0
-	{/if}
+          {maxTotal.toLocaleString()}
+        {:else}
+          0
+        {/if}
       </text>
     </svg>
   {/if}
