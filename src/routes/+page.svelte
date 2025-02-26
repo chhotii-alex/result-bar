@@ -170,21 +170,23 @@
     >
   </h1>
 {:else}
-  {#if dxList}
-    <select name="dx" id="dx" bind:value={selectedDx}>
-      {#each dxList as dx}
-        <option value={dx}>{dx} </option>
-      {/each}
-    </select>
-  {/if}
+  <div class="pickers">
+    {#if dxList}
+      <select name="dx" id="dx" bind:value={selectedDx}>
+        {#each dxList as dx}
+          <option value={dx}>{dx} </option>
+        {/each}
+      </select>
+    {/if}
 
-  <VariablesPicker bind:variablesDataStructure />
+    <VariablesPicker bind:variablesDataStructure />
+  </div>
 
-  {#if data}
-    <div class="bar">
+  <div class="bar">
+    {#if data}
       <BarGraph numbers={data} />
-    </div>
-  {/if}
+    {/if}
+  </div>
 {/if}
 
 <footer>
@@ -219,9 +221,17 @@
     }
   }
 
-  select#dx {
-    margin: 20px auto;
-    display: block;
+  div.pickers {
+    margin: auto;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row; /* default */
+    justify-content: center;
+    align-items: center; /* center items vertically */
+  }
+
+  div.bar {
+    margin: 4em 0px;
   }
 
   /* Needs the :global directive to penetrate into @html strings: */

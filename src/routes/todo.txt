@@ -1,6 +1,4 @@
-* no brackets around positive, negative, distribution labels
-* positive/negative labels right by bars and group totals to left of that
-* some things look cramped in layout of BarGraph
+* panel similar to VariablesPicker for picking test
 * enforce minimum width to avoid negative-width rect
 * re-order groups?
 * some n's on bars in strange places

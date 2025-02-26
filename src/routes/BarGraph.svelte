@@ -251,13 +251,13 @@
 
   $: histogramX = scaleLinear()
     .domain([0, 10])
-    .range([labelAreaWidth + total_nums_width, width]);
+    .range([labelAreaWidth + 2, width - (total_nums_width + 2)]);
 
   $: histogramY = scaleLinear().domain([0, 15000]).range([0.8, 0.05]);
 
   $: barX = scaleLinear()
     .domain([0, 1])
-    .range([labelAreaWidth + total_nums_width, width]);
+    .range([labelAreaWidth + 2, width - (total_nums_width + 2)]);
 
   $: popY = scaleLinear().domain([0, 1]).range([0, height]);
 
@@ -265,7 +265,7 @@
     if (!width) return 0;
     let total = 0;
     for (let i = 0; i < bboxArray.length; ++i) {
-      if (pop.level >= i) {
+      if (pop.level >= i || pop.isLeaf) {
         if (bboxArray[i]) {
           total += bboxArray[i].width;
         }
@@ -291,13 +291,10 @@
     <svg width="100%" height={minHeight}>
       <g>
         {#if height > 20}
-          <text x={barX(0) - total_nums_width} y="0"> total n </text>
+          <text x={width} y="0" text-anchor="end"> total n </text>
           {#each populationsWithGroupTotals(aData) as pop}
             {#if pop.total}
-              <text
-                x={barX(0) - total_nums_width}
-                y={popY(pop.yPlace(0.5)) + 5}
-              >
+              <text text-anchor="end" x={width} y={popY(pop.yPlace(0.5)) + 5}>
                 {pop.total.toLocaleString()}
               </text>
             {/if}
@@ -348,8 +345,8 @@
         {/if}
       </g>
       {#each findPopulations(aData) as pop}
-        {#if pop.level < levels}
-          {#if pop.level > 0}}
+        {#if !pop.isLeaf}
+          {#if true}
             <line
               x1={labelX(pop, labelAreaWidth) + 4}
               x2={labelX(pop, labelAreaWidth) + 4}
@@ -373,7 +370,7 @@
             />
           {/if}
         {/if}
-        {#if pop.level > 0}
+        {#if true}
           <text
             x={labelX(pop, labelAreaWidth)}
             y={popY(pop.yPlace(0.5)) + 5}
