@@ -10,13 +10,14 @@
   let isLoading = true;
   let errorState = false;
 
-  let dxList = null;
+  let quantTestList = null;
+  let testList = null;
   let selectedDx = "Helicobacter pylori";
   let variablesDataStructure = null;
   let data = null;
 
-  async function fetchDxList() {
-    let url = URLforEndpoint("testlist");
+  async function fetchTableDxList(tableName) {
+    let url = URLforEndpoint(`testlist/${tableName}`);
     let response = await fetch(url);
     let items = await response.json();
     return Object.getOwnPropertyNames(items);
@@ -31,7 +32,8 @@
 
   async function loadOptions() {
     try {
-      dxList = await fetchDxList();
+      quantTestList = await fetchTableDxList("quantresults");
+      testList = await fetchTableDxList("results");
       await fetchVariables();
       isLoading = false;
     } catch {
@@ -174,7 +176,7 @@
   </h1>
 {:else}
   <div class="pickers">
-    <DxTestPicker bind:dxList bind:selectedDx />
+    <DxTestPicker bind:selectedDx bind:quantTestList bind:testList />
 
     <VariablesPicker bind:variablesDataStructure />
   </div>

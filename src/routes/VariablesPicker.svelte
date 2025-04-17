@@ -67,31 +67,31 @@
           on:dragover={allowDrop}
           on:drop={drop}
         >
-	<details>
-	  <summary>
-          <input
-            type="checkbox"
-            id={item.id}
-            class="variablename"
-            bind:checked={item.checked}
-          />
-          <label for={item.id} class="variablename">
-            {item.displayName}
-          </label>
-          </summary>
-          {#each item.splits as subItem (subItem.value)}
-            <input
-              type="checkbox"
-              id={subItem.value}
-              class="valuename"
-              bind:checked={subItem.checked}
-            />
-            <label for={subItem.value} class="valuename">
-              {subItem.valueDisplayName}
-            </label>
-            <br />
-          {/each}
-	  </details>
+          <details>
+            <summary>
+              <input
+                type="checkbox"
+                id={item.id}
+                class="variablename"
+                bind:checked={item.checked}
+              />
+              <label for={item.id} class="variablename">
+                {item.displayName}
+              </label>
+            </summary>
+            {#each item.splits as subItem (subItem.value)}
+              <input
+                type="checkbox"
+                id={subItem.value}
+                class="valuename"
+                bind:checked={subItem.checked}
+              />
+              <label for={subItem.value} class="valuename">
+                {subItem.valueDisplayName}
+              </label>
+              <br />
+            {/each}
+          </details>
         </div>
       {/each}
     {/if}

@@ -1,7 +1,8 @@
 <script>
   import FancyFieldset from "./FancyFieldset.svelte";
 
-  export let dxList;
+  export let quantTestList;
+  export let testList;
   export let selectedDx;
 
   let formOpen = false;
@@ -9,8 +10,19 @@
 
 <FancyFieldset bind:exploreGroupsOpen={formOpen} label="Pick Laboratory Test">
   <div class="buttons">
-    {#if dxList}
-      {#each dxList as dx}
+    {#if quantTestList}
+      <span><strong>Quantitative</strong></span><br />
+      {#each quantTestList as dx}
+        <span>
+          <input type="radio" id={dx} value={dx} bind:group={selectedDx} />
+          <label for={dx}> {dx} </label>
+        </span>
+        <br />
+      {/each}
+    {/if}
+    {#if testList}
+      <span><strong>Positive/Negative</strong></span><br />
+      {#each testList as dx}
         <span>
           <input type="radio" id={dx} value={dx} bind:group={selectedDx} />
           <label for={dx}> {dx} </label>

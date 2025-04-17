@@ -48,6 +48,12 @@ def get_test_list():
         gTestList = { row[1]['dx'] : row[1]['table_name'] for row in df.iterrows()}
     return gTestList
 
+@app.get("/testlist/{table_name}")
+async def get_tests_for_table(table_name: str):
+    df = pd.read_sql("SELECT * from tests_lookup where table_name = '%s'" % table_name, eng)
+    testList = { row[1]['dx'] : row[1]['table_name'] for row in df.iterrows()}
+    return testList
+
 class PatientSplit:
     def __init__(self, variable, variableDisplayName):
         self.variable = variable
