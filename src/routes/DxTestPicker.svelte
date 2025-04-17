@@ -31,4 +31,9 @@
     break-inside: auto;
     columns: 3;
   }
+  @media only screen and (max-width: 850px) {
+    div.buttons {
+      columns: 1;
+    }
+  }
 </style>

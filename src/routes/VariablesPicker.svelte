@@ -67,6 +67,8 @@
           on:dragover={allowDrop}
           on:drop={drop}
         >
+	<details>
+	  <summary>
           <input
             type="checkbox"
             id={item.id}
@@ -76,7 +78,7 @@
           <label for={item.id} class="variablename">
             {item.displayName}
           </label>
-          <br />
+          </summary>
           {#each item.splits as subItem (subItem.value)}
             <input
               type="checkbox"
@@ -89,6 +91,7 @@
             </label>
             <br />
           {/each}
+	  </details>
         </div>
       {/each}
     {/if}
@@ -108,9 +111,28 @@
   }
   .group_variable_div {
     break-inside: avoid;
+    padding: 0px;
+  }
+  summary {
+    padding: 0px;
   }
 
   div.controls {
     columns: 4;
+  }
+  @media only screen and (min-width: 1200px) {
+    div.controls {
+      columns: 5;
+    }
+  }
+  @media only screen and (max-width: 850px) {
+    div.controls {
+      columns: 3;
+    }
+  }
+  @media only screen and (max-width: 600px) {
+    div.controls {
+      columns: 1;
+    }
   }
 </style>

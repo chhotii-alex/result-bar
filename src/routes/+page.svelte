@@ -225,7 +225,7 @@
     flex-direction: row; /* default */
     justify-content: center;
     align-items: center; /* center items vertically */
-    max-width: 60em;
+    max-width: 80em;
   }
 
   div.bar {

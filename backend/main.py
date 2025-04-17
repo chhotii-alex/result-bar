@@ -20,6 +20,7 @@ eng = create_engine(connectionString)
 
 origins = ["http://localhost:5173",
            'http://10.35.162.181:5173',
+           "http://10.35.162.29:5173",
            ]
 
 app.add_middleware(
