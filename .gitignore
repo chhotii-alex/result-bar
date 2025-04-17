@@ -5,3 +5,4 @@ node_modules
 connect.py
 __pycache__
 *~
+host.txt

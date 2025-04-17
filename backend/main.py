@@ -9,6 +9,7 @@ from pprint import pp
 from connect import connectionString
 from scipy.stats import binomtest
 import statsmodels.api as sm
+from pathlib import Path
 
 app = FastAPI()
 
@@ -18,10 +19,16 @@ class QueryParams(BaseModel):
 
 eng = create_engine(connectionString)
 
-origins = ["http://localhost:5173",
-           'http://10.35.162.181:5173',
-           "http://10.35.162.29:5173",
-           ]
+hostpath = Path("..") / "host.txt"
+
+with open(hostpath) as f:
+    host_nonlocal = f.readline().strip()
+
+origins = [
+    "%s:%s" % (host, port) for port in ["5173", "5174"]
+    for host in [host_nonlocal, "http://localhost"]]
+
+print(origins)
 
 app.add_middleware(
     CORSMiddleware,
