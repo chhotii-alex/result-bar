@@ -25,7 +25,7 @@ with open(hostpath) as f:
     host_nonlocal = f.readline().strip()
 
 origins = [
-    "%s:%s" % (host, port) for port in ["5173", "5174"]
+    "%s:%s" % (host, port) for port in ["5173", "8001"]
     for host in [host_nonlocal, "http://localhost"]]
 
 print(origins)
