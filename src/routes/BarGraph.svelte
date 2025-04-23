@@ -18,17 +18,15 @@
     return 1;
   }
 
+  let colors = { positive: "Tomato", negative: "DodgerBlue" };
+
   function markup(population, minDim, maxDim, level) {
     population.minDim = minDim;
     population.maxDim = maxDim;
     population.yPlace = scaleLinear().domain([0, 1]).range([minDim, maxDim]);
     population.level = level;
-    if (population.label == "positive") {
-      population.color = "Tomato";
-    } else {
-      population.color = "DodgerBlue";
-    }
-    if (typeof population.data == "number") {
+    population.color = colors[population.label];
+    if (population.total) {
       population.xScale = scaleLinear()
         .domain([0, population.total])
         .range([0, 1]);
@@ -37,11 +35,20 @@
         population.histogramY = scaleLinear()
           .domain([0, peak])
           .range([0.8, 0.05]);
+        population.slices = {
+          bars: scaleLinear().domain([0, 1]).range([0.75, 1.0]),
+          histogram: scaleLinear().domain([0, 1]).range([0.0, 0.75]),
+        };
+      } else {
+        population.slices = {
+          bars: scaleLinear().domain([0, 1]).range([0, 1.0]),
+        };
       }
-    } else {
+    }
+    if (typeof population.data != "number") {
       let widthPoints = 0;
       for (let i = 0; i < population.data.length; ++i) {
-        widthPoints += widthPointsForPop(population.data[i]);
+        widthPoints += findLevels(population.data[i]);
       }
       let childWidth = (maxDim - minDim) / widthPoints;
       let pointsSoFar = 0;
@@ -49,11 +56,10 @@
         markup(
           population.data[i],
           minDim + pointsSoFar * childWidth,
-          minDim +
-            (pointsSoFar + widthPointsForPop(population.data[i])) * childWidth,
+          minDim + (pointsSoFar + findLevels(population.data[i])) * childWidth,
           level + 1
         );
-        pointsSoFar += widthPointsForPop(population.data[i]);
+        pointsSoFar += findLevels(population.data[i]);
       }
     }
     return population;
@@ -118,31 +124,7 @@
     if (typeof population.data != "number") {
       a = population.data.map((pop) => findPopulations(pop));
     }
-    if (population.histogram) {
-      let fraction =
-        (widthPointsForPop(population) - 1) / widthPointsForPop(population);
-      let divide =
-        fraction * (population.maxDim - population.minDim) + population.minDim;
-      let posBar = {
-        ...population,
-        histogram: null,
-        type: "counts",
-        minDim: divide,
-      };
-      let distribution = {
-        ...population,
-        label: "distribution",
-        maxDim: divide,
-      };
-      posBar.yPlace = scaleLinear()
-        .domain([0, 1])
-        .range([posBar.minDim, posBar.maxDim]);
-      distribution.yPlace = scaleLinear()
-        .domain([0, 1])
-        .range([distribution.minDim, distribution.maxDim]);
-      a.push(posBar);
-      a.push(distribution);
-    } else {
+    if (!population.isLeaf) {
       a.push(population);
     }
     return a.flat(Infinity);
@@ -154,10 +136,6 @@
 
   function populationsWithGroupTotals(population) {
     return findPopulations(population).filter((pop) => pop.showTotal);
-  }
-
-  function populationsWithDetail(population) {
-    return findPopulations(population).filter((pop) => pop.isLeaf);
   }
 
   function longestStringAtLevel(population, n) {
@@ -240,7 +218,7 @@
     if (!width) return 0;
     let total = 0;
     for (let i = 0; i < bboxArray.length; ++i) {
-      if (pop.level >= i || pop.isLeaf) {
+      if (pop.level >= i) {
         if (bboxArray[i]) {
           total += bboxArray[i].width;
         }
@@ -249,7 +227,8 @@
     return total;
   }
 
-  $: minHeight = 4 * (findPopulations(aData).length + 2) + "vh";
+  $: minHeight =
+    Math.pow(2, findLevels(aData)) * 30 * (hasHistograms ? 6 : 1) + "px";
 </script>
 
 <h3>
@@ -276,47 +255,47 @@
                 {pop.total.toLocaleString()}
               </text>
             {/if}
-          {/each}
-          {#each populationsWithDetail(aData) as pop}
-            {#if pop.type == "counts"}
+            {#each ["positive", "negative"] as value}
               <rect
-                x={barX(0)}
-                width={0.5 + barX(pop.xScale(pop.data)) - barX(0)}
-                y={popY(pop.yPlace(0.05))}
-                height={popY(pop.yPlace(0.95)) - popY(pop.yPlace(0.05))}
-                fill={pop.color}
+                x={barX(pop.xScale(value == "positive" ? 0 : pop["positive"]))}
+                width={0.5 + barX(pop.xScale(pop[value])) - barX(0)}
+                y={popY(pop.yPlace(pop.slices.bars(0.1)))}
+                height={popY(pop.yPlace(pop.slices.bars(0.9))) -
+                  popY(pop.yPlace(pop.slices.bars(0.1)))}
+                fill={colors[value]}
               />
-              {#if pop.ci_low !== undefined && pop.ci_high !== undefined}
-                <line
-                  x1={barX(pop.xScale(pop.ci_low * pop.total))}
-                  x2={barX(pop.xScale(pop.ci_high * pop.total))}
-                  y1={popY(pop.yPlace(0.5))}
-                  y2={popY(pop.yPlace(0.5))}
-                  stroke="black"
-                />
-              {/if}
-              {#if pop.ci_low !== undefined}
-                <text
-                  x={Math.max(
-                    Math.min(
-                      barX(pop.xScale(pop.data)) - 5,
-                      barX(pop.xScale(pop.ci_low * pop.total)) - 2
-                    ),
-                    barX(0) + 10
-                  )}
-                  y={popY(pop.yPlace(0.5)) + 5}
-                  text-anchor="end">{pop.data.toLocaleString()}</text
-                >
-              {/if}
-            {:else if pop.type == "histogram" && pop.histogram}
+            {/each}
+            {#if pop.ci_low !== undefined && pop.ci_high !== undefined}
+              <line
+                x1={barX(pop.xScale(pop.ci_low * pop.total))}
+                x2={barX(pop.xScale(pop.ci_high * pop.total))}
+                y1={popY(pop.yPlace(pop.slices.bars(0.5)))}
+                y2={popY(pop.yPlace(pop.slices.bars(0.5)))}
+                stroke="black"
+              />
+              <text
+                x={Math.min(
+                  Math.min(
+                    barX(pop.xScale(pop["positive"])) - 5,
+                    barX(pop.xScale(pop.ci_low * pop.total)) - 2
+                  ),
+                  barX(0) + 10
+                )}
+                y={popY(pop.yPlace(pop.slices.bars(0.5))) + 5}
+                text-anchor="start">{pop["positive"].toLocaleString()}</text
+              >
+            {/if}
+            {#if pop.histogram}
               <path
                 d={line()
                   .curve(curveBumpX)
                   .x((d) => histogramX(d.viralLoadLog))
-                  .y((d) => popY(pop.yPlace(pop.histogramY(d.count))))(
-                  pop.histogram
-                )}
-                style={`stroke: ${pop.color}; fill: ${pop.color}`}
+                  .y((d) =>
+                    popY(
+                      pop.yPlace(pop.slices.histogram(pop.histogramY(d.count)))
+                    )
+                  )(pop.histogram)}
+                style={`stroke: ${pop.color}; fill: ${colors["positive"]}`}
               />
             {/if}
           {/each}
@@ -348,7 +327,7 @@
             />
           {/if}
         {/if}
-        {#if true}
+        {#if !pop.isLeaf}
           <text
             x={labelX(pop, bboxArray)}
             y={popY(pop.yPlace(0.5)) + 5}
@@ -377,7 +356,13 @@
       </g>
       {#if hasHistograms}
         <g class="x-axis" transform={`translate(0, -40)`}>
-          <line x1={barX(0)} x2={barX(1)} y1="33" y2="33" stroke="black" />
+          <line
+            x1={barX(0)}
+            x2={histogramX(9)}
+            y1="33"
+            y2="33"
+            stroke="black"
+          />
           {#each [0, 3, 6, 9] as tick}
             <g class="tick" transform={`translate(${histogramX(tick)},0)`}>
               <foreignObject width="2em" height="2em" x="-0.5em" y="0.25em">

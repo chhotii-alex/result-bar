@@ -218,6 +218,7 @@ def dice_results(test_name, df, label, label_value, remaining_keys, params, is_q
                     conditional = df['result_value_num'] > 0.0
                     results_split['type'] = 'histogram'
                     results_split['histogram'] = histogram(df.loc[conditional, 'result_value_log10'])
+                    results['histogram'] = results_split['histogram']
                 else:
                     conditional = df['result_value_num'] == 0.0
             else:
@@ -229,7 +230,11 @@ def dice_results(test_name, df, label, label_value, remaining_keys, params, is_q
                 ci = stat_result.proportion_ci()
                 results_split['ci_low'] = ci.low
                 results_split['ci_high'] = ci.high
+                if result == 'positive':
+                    for stat in ['ci_low', 'ci_high']:
+                        results[stat] = results_split[stat]
             data.append(results_split)
+            results[result] = results_split['data']
     results['data'] = data
     return results
     
