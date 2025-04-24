@@ -13,11 +13,6 @@
     return theCopy;
   }
 
-  function widthPointsForPop(pop) {
-    if (pop.histogram) return 5;
-    return 1;
-  }
-
   let colors = { positive: "Tomato", negative: "DodgerBlue" };
 
   function markup(population, minDim, maxDim, level) {
@@ -228,7 +223,7 @@
   }
 
   $: minHeight =
-    Math.pow(2, findLevels(aData)) * 30 * (hasHistograms ? 6 : 1) + "px";
+    findPopulations(aData).length * 30 * (hasHistograms ? 3 : 1) + "px";
 </script>
 
 <h3>
